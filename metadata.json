@@ -1,0 +1,6 @@
+{
+  "name": "Portal do Agente CCZ SJC",
+  "description": "Um portal para agentes do Centro de Controle de Zoonoses (CCZ) de São José dos Campos se informarem, treinarem, e realizarem avaliações.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
