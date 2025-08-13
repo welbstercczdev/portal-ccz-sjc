@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Page, TrainingMaterial, NormDocument, Quiz, AssessmentResult, Agent } from './types';
-import { INITIAL_TRAINING_DATA, INITIAL_NORMS_DATA, INITIAL_ASSESSMENTS_DATA, AGENTS, INITIAL_HISTORY_DATA } from './data';
+import { INITIAL_TRAINING_DATA, INITIAL_NORMS_DATA, INITIAL_ASSESSMENTS_DATA, AGENTS, LOGGED_IN_AGENT, INITIAL_HISTORY_DATA } from './data';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
@@ -12,12 +12,7 @@ import HistoryPage from './pages/HistoryPage';
 import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
 
-interface AppProps {
-  loggedInAgent: Agent;
-  onLogout: () => void;
-}
-
-const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
+const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
   const [isAdminMode, setIsAdminMode] = useState(false);
 
@@ -74,8 +69,8 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
         ...resultData,
         id: `result-${Date.now()}`,
         date: new Date().toISOString(),
-        agentId: loggedInAgent.id,
-        agentName: loggedInAgent.name,
+        agentId: LOGGED_IN_AGENT.id,
+        agentName: LOGGED_IN_AGENT.name,
     };
     setAssessmentHistory(prev => [newResult, ...prev]);
   };
@@ -91,7 +86,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
   };
 
   const handleDeleteAgent = (id: string) => {
-    if (id === loggedInAgent.id) {
+    if (id === LOGGED_IN_AGENT.id) {
       alert("Você não pode excluir seu próprio usuário.");
       return;
     }
@@ -100,21 +95,11 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
 
 
   const handleSetPage = (page: Page) => {
-    if (page === Page.Admin && loggedInAgent.role !== 'gestor') {
+    if (page === Page.Admin && !isAdminMode) {
       return;
     }
     setCurrentPage(page);
-  };
-
-  const handleAdminModeToggle = (newMode: boolean) => {
-    if (loggedInAgent.role !== 'gestor') return;
-    setIsAdminMode(newMode);
-    if(newMode && currentPage !== Page.Admin) {
-        setCurrentPage(Page.Admin);
-    } else if (!newMode && currentPage === Page.Admin) {
-        setCurrentPage(Page.Home);
-    }
-  };
+  }
 
   const renderPage = () => {
     switch (currentPage) {
@@ -127,15 +112,12 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
       case Page.Norms:
         return <NormsPage norms={normsData} />;
        case Page.History:
-        return <HistoryPage history={assessmentHistory.filter(h => h.agentId === loggedInAgent.id)} />;
+        return <HistoryPage history={assessmentHistory.filter(h => h.agentId === LOGGED_IN_AGENT.id)} />;
       case Page.Ranking:
-        return <RankingPage agents={agents} history={assessmentHistory} assessments={assessmentsData} loggedInAgentId={loggedInAgent.id} />;
+        return <RankingPage agents={agents} history={assessmentHistory} assessments={assessmentsData} loggedInAgentId={LOGGED_IN_AGENT.id} />;
       case Page.Jogos:
         return <GamesPage />;
       case Page.Admin:
-        if (!isAdminMode || loggedInAgent.role !== 'gestor') {
-            return <HomePage setActivePage={handleSetPage} />;
-        }
         return (
             <AdminPage 
                 trainings={trainingData}
@@ -151,7 +133,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
                 onDeleteAssessment={handleDeleteAssessment}
                 onSaveAgent={handleSaveAgent}
                 onDeleteAgent={handleDeleteAgent}
-                loggedInAgentId={loggedInAgent.id}
+                loggedInAgentId={LOGGED_IN_AGENT.id}
             />
         );
       default:
@@ -165,9 +147,8 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
         currentPage={currentPage} 
         setCurrentPage={handleSetPage} 
         isAdminMode={isAdminMode}
-        setIsAdminMode={handleAdminModeToggle}
-        agent={loggedInAgent}
-        onLogout={onLogout}
+        setIsAdminMode={setIsAdminMode}
+        agent={LOGGED_IN_AGENT}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="p-6 md:p-8">

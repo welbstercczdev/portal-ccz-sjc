@@ -1,7 +1,15 @@
 import { TrainingMaterial, NormDocument, Quiz, Agent, AssessmentResult } from './types';
 
+export const LOGGED_IN_AGENT: Agent = {
+  id: 'agent-12345',
+  name: 'Agente Silva',
+  email: 'silva.gestor@ccz.sjc.gov.br',
+  role: 'gestor',
+  password: 'password123',
+};
+
 export const AGENTS: Agent[] = [
-  { id: 'agent-12345', name: 'Agente Silva', email: 'silva.gestor@ccz.sjc.gov.br', role: 'gestor', password: 'password123' },
+  LOGGED_IN_AGENT,
   { id: 'agent-67890', name: 'Agente Costa', email: 'costa.agente@ccz.sjc.gov.br', role: 'agente', password: 'password123' },
   { id: 'agent-13579', name: 'Agente Souza', email: 'souza.agente@ccz.sjc.gov.br', role: 'agente', password: 'password123' },
 ];
@@ -46,9 +54,9 @@ export const INITIAL_ASSESSMENTS_DATA: Quiz[] = [
 
 export const INITIAL_HISTORY_DATA: AssessmentResult[] = [
     // Agente Silva's results
-    { id: 'res1', quizId: 'dengue-01', quizTitle: 'Conhecimentos sobre Dengue', score: 2, totalQuestions: 3, percentage: 66.67, date: new Date('2023-10-26T10:00:00Z').toISOString(), agentId: 'agent-12345', agentName: 'Agente Silva', userAnswers: {'q1d': 0, 'q2d': 1, 'q3d': 2}, duration: 125 },
-    { id: 'res2', quizId: 'dengue-01', quizTitle: 'Conhecimentos sobre Dengue', score: 3, totalQuestions: 3, percentage: 100, date: new Date('2023-10-27T11:00:00Z').toISOString(), agentId: 'agent-12345', agentName: 'Agente Silva', userAnswers: {'q1d': 2, 'q2d': 1, 'q3d': 2}, duration: 95 },
-    { id: 'res3', quizId: 'raiva-01', quizTitle: 'Prevenção da Raiva', score: 3, totalQuestions: 3, percentage: 100, date: new Date('2023-10-28T14:00:00Z').toISOString(), agentId: 'agent-12345', agentName: 'Agente Silva', userAnswers: {'q1r': 3, 'q2r': 2, 'q3r': 1}, duration: 88 },
+    { id: 'res1', quizId: 'dengue-01', quizTitle: 'Conhecimentos sobre Dengue', score: 2, totalQuestions: 3, percentage: 66.67, date: new Date('2023-10-26T10:00:00Z').toISOString(), agentId: LOGGED_IN_AGENT.id, agentName: LOGGED_IN_AGENT.name, userAnswers: {'q1d': 0, 'q2d': 1, 'q3d': 2}, duration: 125 },
+    { id: 'res2', quizId: 'dengue-01', quizTitle: 'Conhecimentos sobre Dengue', score: 3, totalQuestions: 3, percentage: 100, date: new Date('2023-10-27T11:00:00Z').toISOString(), agentId: LOGGED_IN_AGENT.id, agentName: LOGGED_IN_AGENT.name, userAnswers: {'q1d': 2, 'q2d': 1, 'q3d': 2}, duration: 95 },
+    { id: 'res3', quizId: 'raiva-01', quizTitle: 'Prevenção da Raiva', score: 3, totalQuestions: 3, percentage: 100, date: new Date('2023-10-28T14:00:00Z').toISOString(), agentId: LOGGED_IN_AGENT.id, agentName: LOGGED_IN_AGENT.name, userAnswers: {'q1r': 3, 'q2r': 2, 'q3r': 1}, duration: 88 },
 
     // Agente Costa's results
     { id: 'res4', quizId: 'dengue-01', quizTitle: 'Conhecimentos sobre Dengue', score: 3, totalQuestions: 3, percentage: 100, date: new Date('2023-10-27T12:00:00Z').toISOString(), agentId: 'agent-67890', agentName: 'Agente Costa', userAnswers: {'q1d': 2, 'q2d': 1, 'q3d': 2}, duration: 110 },

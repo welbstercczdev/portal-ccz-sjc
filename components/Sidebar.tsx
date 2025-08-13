@@ -8,7 +8,6 @@ interface SidebarProps {
   isAdminMode: boolean;
   setIsAdminMode: (isAdmin: boolean) => void;
   agent: Agent;
-  onLogout: () => void;
 }
 
 const Logo: React.FC = () => (
@@ -23,13 +22,18 @@ const Logo: React.FC = () => (
 );
 
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminMode, setIsAdminMode, agent, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminMode, setIsAdminMode, agent }) => {
   const navItems = Object.values(Page).filter(page => isAdminMode || page !== Page.Admin);
   const agentInitials = agent.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
   const handleModeChange = () => {
     const newMode = !isAdminMode;
     setIsAdminMode(newMode);
+    if(newMode && currentPage !== Page.Admin) {
+        setCurrentPage(Page.Admin);
+    } else if (!newMode && currentPage === Page.Admin) {
+        setCurrentPage(Page.Home);
+    }
   }
 
   return (
@@ -69,20 +73,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminM
              </div>
           </div>
           {agent.role === 'gestor' && (
-            <div className="hidden lg:flex items-center justify-between text-sm text-white/80 p-1 mb-2">
+            <div className="hidden lg:flex items-center justify-between text-sm text-white/80 p-1">
                 <span className="font-semibold text-sm text-white">Modo Gestão</span>
                 <button onClick={handleModeChange} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAdminMode ? 'bg-white/30' : 'bg-black/20'}`} role="switch" aria-checked={isAdminMode}>
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAdminMode ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
             </div>
           )}
-           <button
-                onClick={onLogout}
-                className="flex items-center p-3 rounded-lg w-full text-left transition-all duration-200 group hover:bg-white/10 hover:text-white"
-            >
-                {ICONS['Sair']}
-                <span className="hidden lg:inline lg:ml-4 font-semibold">Sair</span>
-            </button>
       </div>
     </aside>
   );
