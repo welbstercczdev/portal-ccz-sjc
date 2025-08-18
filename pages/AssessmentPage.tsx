@@ -42,13 +42,7 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
   const [displayScore, setDisplayScore] = useState(0);
   const [startTime, setStartTime] = useState(0);
   
-  const score = userAnswers.reduce((acc, answer, index) => {
-    // Adiciona uma verificação para garantir que a questão existe
-    if (quiz.questions[index] && answer === quiz.questions[index].correctAnswerIndex) {
-      return acc + 1;
-    }
-    return acc;
-  }, 0);
+  const score = userAnswers.reduce((acc, answer, index) => (answer === quiz.questions[index].correctAnswerIndex ? acc + 1 : acc), 0);
   
   useEffect(() => {
     setStartTime(Date.now());
@@ -62,7 +56,7 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
             const answersMap: { [questionId: string]: number } = {};
             quiz.questions.forEach((q, index) => {
                 const answer = userAnswers[index];
-                if (answer !== null && q && q.id) { // Garante que a questão e o ID existem
+                if (answer !== null) {
                     answersMap[q.id] = answer;
                 }
             });
@@ -81,7 +75,6 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
 
         let start = 0;
         const end = score;
-        if (isNaN(end)) return; // Previne erro se score não for um número
         const duration = 1200;
         const frameDuration = 1000 / 60;
         const totalFrames = Math.round(duration / frameDuration);
@@ -155,7 +148,7 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
                         const userAnswer = userAnswers[index];
                         const isCorrect = userAnswer === q.correctAnswerIndex;
                         return (
-                            <div key={q.id} className={`p-4 rounded-lg border-l-4 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                            <div key={index} className={`p-4 rounded-lg border-l-4 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
                                 <p className="font-semibold text-text-primary">{index + 1}. {q.text}</p>
                                 <div className="mt-2 text-sm">
                                     <p className={`flex items-center gap-2 ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
@@ -188,12 +181,12 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
     );
   }
 
-  const currentQuestion = quiz.questions && quiz.questions[currentQuestionIndex];
+  const currentQuestion = quiz.questions[currentQuestionIndex];
   if (!currentQuestion) {
       return (
           <div className="bg-surface p-8 rounded-xl shadow-card text-center">
               <h2 className="text-xl font-bold text-primary">Avaliação Inválida</h2>
-              <p className="text-text-secondary mt-2">Esta avaliação não contém perguntas ou elas não puderam ser carregadas.</p>
+              <p className="text-text-secondary mt-2">Esta avaliação não contém perguntas.</p>
               <button onClick={onBack} className="mt-4 bg-slate-200 text-text-secondary font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition-colors">
                   Voltar
               </button>
@@ -255,13 +248,13 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
 const AssessmentPage: React.FC<AssessmentPageProps> = ({ assessments, onAddResult }) => {
     const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
     
-    const visibleAssessments = (assessments || []).filter(quiz => quiz.isVisible);
+    const visibleAssessments = assessments.filter(quiz => quiz.isVisible);
 
     if (activeQuiz) {
         return <QuizRunner quiz={activeQuiz} onBack={() => setActiveQuiz(null)} onAddResult={onAddResult} />;
     }
 
-    if (!visibleAssessments || visibleAssessments.length === 0) {
+    if (visibleAssessments.length === 0) {
         return (
             <div className="text-center p-12 bg-surface rounded-lg shadow-card animate-fade-in">
                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>

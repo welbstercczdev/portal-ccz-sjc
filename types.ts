@@ -70,11 +70,3 @@ export interface AssessmentResult {
   userAnswers: { [questionId: string]: number }; // questionId -> selectedOptionIndex
   duration: number; // in seconds
 }
-
-export interface TrainingProgress {
-    id: string;
-    agentId: string;
-    trainingId: string;
-    completed: boolean;
-    dateCompleted: string;
-}
