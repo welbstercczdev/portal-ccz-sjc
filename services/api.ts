@@ -54,7 +54,7 @@ export const saveAssessmentResult = (result: Omit<AssessmentResult, 'id' | 'agen
   return callApi('saveAssessmentResult', { result: JSON.stringify(result) });
 };
 
-export const setTrainingProgress = (agentId: string, trainingId: string, completed: boolean) => {
+export const setTrainingProgress = (agentId: string, trainingId: number, completed: boolean) => {
   return callApi('setTrainingProgress', { agentId, trainingId, completed });
 };
 
@@ -79,7 +79,7 @@ export const saveTraining = (trainingData: TrainingMaterial) => {
   return callApi('saveTraining', { trainingData });
 };
 
-export const deleteTraining = (id: string) => {
+export const deleteTraining = (id: number) => {
   return callApi('deleteTraining', { id });
 };
 
@@ -87,7 +87,7 @@ export const saveNorm = (normData: NormDocument) => {
     return callApi('saveNorm', {normData})
 };
 
-export const deleteNorm = (id: string) => {
+export const deleteNorm = (id: number) => {
     return callApi('deleteNorm', {id})
 };
 
@@ -97,7 +97,4 @@ export const saveAssessment = (assessmentData: Quiz) => {
 
 export const deleteAssessment = (id: string) => {
     return callApi('deleteAssessment', {id})
-};
-export const changePassword = (agentId: string, oldPassword: string, newPassword: string) => {
-  return callApi('changePassword', { agentId, oldPassword, newPassword });
 };
