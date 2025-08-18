@@ -83,10 +83,10 @@ const AedesLifecycleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     const dropZones = [
-        { id: 0, top: '8%', left: '50%', transform: 'translateX(-50%)' },
-        { id: 1, top: '50%', left: '8%', transform: 'translateY(-50%)' },
-        { id: 2, top: '82%', left: '50%', transform: 'translateX(-50%)' },
-        { id: 3, top: '50%', left: '82%', transform: 'translateY(-50%)' },
+        { id: 0, top: '10%', left: '50%', transform: 'translateX(-50%)' },
+        { id: 1, top: '50%', left: '10%', transform: 'translateY(-50%)' },
+        { id: 2, top: '80%', left: '50%', transform: 'translateX(-50%)' },
+        { id: 3, top: '50%', left: '80%', transform: 'translateY(-50%)' },
     ];
 
     if (gameState === 'intro' || gameState === 'finished') {
@@ -123,7 +123,7 @@ const AedesLifecycleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
 
     return (
-        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden">
+        <div className="w-full flex-1 overflow-y-auto bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden">
             {/* Header */}
             <div className="flex justify-between items-center mb-4 px-2">
                 <h2 className="text-2xl font-bold text-primary">Organize o Ciclo de Vida</h2>

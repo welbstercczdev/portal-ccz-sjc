@@ -226,7 +226,7 @@ const ArbovirusWordSearchGame: React.FC<{ onBack: () => void }> = ({ onBack }) =
     }
     
     return (
-        <div className="w-full h-[calc(100vh-10rem)] bg-slate-200 rounded-xl shadow-inner-light p-4 flex flex-col md:flex-row gap-6" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+        <div className="w-full flex-1 overflow-y-auto bg-slate-200 rounded-xl shadow-inner-light p-4 flex flex-col md:flex-row gap-6" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
             {/* Game Grid */}
             <div className="flex-grow bg-surface rounded-lg shadow-md p-4 flex items-center justify-center">
                  <div className="grid select-none" style={{gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`}}>
