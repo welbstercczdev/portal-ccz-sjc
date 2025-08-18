@@ -11,6 +11,7 @@ import AdminPage from './pages/AdminPage';
 import HistoryPage from './pages/HistoryPage';
 import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
+import ChangePasswordModal from './components/ChangePasswordModal'; // 1. Importe o novo modal
 
 interface AppProps {
   loggedInAgent: Agent;
@@ -19,9 +20,7 @@ interface AppProps {
 
 const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
-  // O modo admin só é ativado pelo toggle na sidebar, começando como false.
   
-
   // Estados de Dados
   const [trainingData, setTrainingData] = useState<TrainingMaterial[]>([]);
   const [normsData, setNormsData] = useState<NormDocument[]>([]);
@@ -32,38 +31,35 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
   // Estados de Controle da UI
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false); // 2. Adicione o estado para o modal
 
-  // Efeito para Buscar Dados Iniciais
-    // --- Efeito para Buscar Dados Iniciais ---
-    // --- Efeito para Buscar Dados Iniciais ---
   useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
       try {
         if (!loggedInAgent.id) {
-          throw new Error("Agente não está logado. Por favor, faça o login novamente.");
+          throw new Error("Agente não está logado.");
         }
         
-        // A lógica agora é baseada na PÁGINA ATUAL, não em um "modo" separado.
+        let data;
         if (currentPage === Page.Admin && loggedInAgent.role === 'gestor') {
-            const adminData = await api.getAllDataForAdmin();
-            setAgents(adminData.agents || []);
-            setTrainingData(adminData.trainings || []);
-            setNormsData(adminData.norms || []);
-            // As avaliações no modo admin podem não precisar de parse, mas fazemos por segurança
-            const parsedAdminAssessments = (adminData.assessments || []).map(a => ({...a, questions: JSON.parse(a.questions_json || '[]')}));
-            setAssessmentsData(parsedAdminAssessments);
-            setAssessmentHistory(adminData.history || []);
+            data = await api.getAllDataForAdmin();
         } else {
-            // Se não estiver na página de admin, busca os dados normais do agente.
-            const agentData = await api.getInitialDataForAgent(loggedInAgent.id);
-            setAgents(agentData.agents || []); // A lista de agentes ainda é necessária para o ranking
-            setTrainingData(agentData.trainings || []);
-            setNormsData(agentData.norms || []);
-            const parsedAgentAssessments = (agentData.assessments || []).map(a => ({...a, questions: JSON.parse(a.questions_json || '[]')}));
-            setAssessmentsData(parsedAgentAssessments);
-            setAssessmentHistory(agentData.history || []);
+            data = await api.getInitialDataForAgent(loggedInAgent.id);
         }
+
+        setAgents(data.agents || []);
+        setTrainingData(data.trainings || []);
+        setNormsData(data.norms || []);
+        setAssessmentHistory(data.history || []);
+        
+        const parsedAssessments = (data.assessments || []).map(a => ({
+          ...a,
+          questions: typeof a.questions_json === 'string' 
+            ? JSON.parse(a.questions_json) 
+            : (a.questions || [])
+        }));
+        setAssessmentsData(parsedAssessments);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido.");
@@ -73,10 +69,10 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
     };
 
     fetchData();
-  }, [currentPage, loggedInAgent.id]); // A dependência agora é a PÁGINA ATUAL
-  // --- Handlers para Agente ---
+  }, [currentPage, loggedInAgent.id]);
 
-  const handleToggleTrainingCompletion = async (id: number) => {
+  // --- Handlers para Agente ---
+  const handleToggleTrainingCompletion = async (id: string) => {
     const material = trainingData.find(t => t.id === id);
     if (!material) return;
     const newCompletedStatus = !material.completed;
@@ -89,30 +85,29 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
     }
   };
 
-    const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
+  const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
     const newResult: AssessmentResult = {
-        ...resultData,
-        id: '', // O backend irá gerar
-        date: new Date().toISOString(),
-        agentId: loggedInAgent.id,
-        agentName: loggedInAgent.name,
+      ...resultData,
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+      agentId: loggedInAgent.id,
+      agentName: loggedInAgent.name,
     };
-    
-    // Adiciona na UI imediatamente
     setAssessmentHistory(prev => [newResult, ...prev]);
-
     try {
-        // O ERRO ESTÁ AQUI. Estávamos enviando newResult, mas precisamos ter certeza de que todos os campos estão corretos.
-        await api.saveAssessmentResult(newResult);
+      await api.saveAssessmentResult(newResult);
     } catch (err) {
-        alert("Falha ao salvar o resultado da avaliação.");
-        // Opcional: remover o resultado da UI se a chamada falhar
-        setAssessmentHistory(prev => prev.filter(r => r.id !== newResult.id));
+      alert("Falha ao salvar o resultado da avaliação.");
+      setAssessmentHistory(prev => prev.filter(r => r.id !== newResult.id));
     }
   };
 
-  // --- Handlers para Admin ---
+  // 3. Adicione o handler para alterar a senha
+  const handleChangePassword = async (oldPassword: string, newPassword: string) => {
+    return await api.changePassword(loggedInAgent.id, oldPassword, newPassword);
+  };
 
+  // --- Handlers para Admin ---
   const handleSaveTraining = async (training: TrainingMaterial) => {
     try {
       const { record: savedRecord } = await api.saveTraining(training);
@@ -123,7 +118,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
       });
     } catch (error) { alert("Falha ao salvar o treinamento."); }
   };
-  const handleDeleteTraining = async (id: number) => {
+  const handleDeleteTraining = async (id: string) => {
     try {
       await api.deleteTraining(id);
       setTrainingData(prev => prev.filter(t => t.id !== id));
@@ -140,7 +135,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
       });
     } catch (error) { alert("Falha ao salvar a norma."); }
   };
-  const handleDeleteNorm = async (id: number) => {
+  const handleDeleteNorm = async (id: string) => {
     try {
       await api.deleteNorm(id);
       setNormsData(prev => prev.filter(n => n.id !== id));
@@ -216,7 +211,6 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
         return <HistoryPage history={personalHistory} />;
       case Page.Ranking: return <RankingPage agents={agents} history={assessmentHistory} assessments={assessmentsData} loggedInAgentId={loggedInAgent.id} />;
       case Page.Admin:
-        // Renderiza a AdminPage somente se o usuário for um gestor para segurança extra.
         return loggedInAgent.role === 'gestor' ? (
             <AdminPage 
                 trainings={trainingData}
@@ -234,19 +228,20 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
                 onDeleteAgent={handleDeleteAgent}
                 loggedInAgentId={loggedInAgent.id}
             />
-        ) : <HomePage setActivePage={handleSetPage} />; // Redireciona para Home se não for gestor
+        ) : <HomePage setActivePage={handleSetPage} />;
       default: return <HomePage setActivePage={handleSetPage} />;
     }
   };
 
   return (
     <div className="flex h-screen font-sans bg-background text-text-primary">
-        <Sidebar 
+      <Sidebar 
          currentPage={currentPage} 
          setCurrentPage={handleSetPage} 
          agent={loggedInAgent}
          onLogout={onLogout}
-        />
+         onOpenChangePassword={() => setChangePasswordModalOpen(true)} // 4. Passe a função para a Sidebar
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 md:px-8 py-4">
             <Header title={currentPage} />
@@ -257,6 +252,13 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
           </div>
         </main>
       </div>
+      
+      {/* 5. Renderize o modal aqui */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setChangePasswordModalOpen(false)}
+        onSave={handleChangePassword}
+      />
     </div>
   );
 };
