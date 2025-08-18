@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { Agent, AssessmentResult, Quiz, TrainingMaterial, Question } from '../types';
+import { Agent, AssessmentResult, Quiz, TrainingMaterial, Question, TrainingProgress } from '../types';
 
 interface AnalyticsPageProps {
     assessments: Quiz[];
     agents: Agent[];
     history: AssessmentResult[];
     trainings: TrainingMaterial[];
+    progress: TrainingProgress[];
 }
 
-// Sub-componentes (permanecem os mesmos)
 const StatCard: React.FC<{ title: string; value: string; subtext?: string }> = ({ title, value, subtext }) => (
     <div className="bg-surface p-5 rounded-xl shadow-card border border-border-color animate-stagger-item-in">
         <p className="text-sm text-text-secondary">{title}</p>
@@ -45,12 +45,11 @@ const AgentResultDetails: React.FC<{ result: AssessmentResult; quiz: Quiz; onBac
                     <p className="text-lg text-text-secondary font-semibold">{result.score} de {result.totalQuestions} acertos</p>
                 </div>
             </div>
-
              <div className="bg-surface rounded-lg shadow-card p-6">
                 <h3 className="text-xl font-bold text-text-primary mb-4">Revisão Detalhada</h3>
                 <div className="space-y-4">
                     {quiz.questions && quiz.questions.map((q, index) => {
-                        const userAnswerIndex = result.userAnswers[q.id];
+                        const userAnswerIndex = result.userAnswers ? result.userAnswers[q.id] : undefined;
                         const isCorrect = userAnswerIndex === q.correctAnswerIndex;
                         return (
                             <div key={q.id} className={`p-4 rounded-lg border-l-4 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
@@ -77,13 +76,13 @@ const AgentResultDetails: React.FC<{ result: AssessmentResult; quiz: Quiz; onBac
 };
 
 
-const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, history, trainings }) => {
+const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, history, trainings, progress }) => {
     const [selectedItem, setSelectedItem] = useState<{ type: 'assessment' | 'agent', id: string } | null>(null);
     const [selectedResult, setSelectedResult] = useState<AssessmentResult | null>(null);
 
     const overallStats = useMemo(() => {
         if (!history || history.length === 0) return { avgScore: 0, completions: 0 };
-        const totalPercentage = history.reduce((acc, curr) => acc + curr.percentage, 0);
+        const totalPercentage = history.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
         return {
             avgScore: totalPercentage / history.length,
             completions: history.length,
@@ -91,24 +90,26 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     }, [history]);
 
     const assessmentStats = useMemo(() => {
-        return (assessments || []).map(quiz => {
-            const completions = (history || []).filter(h => h.quizId === quiz.id);
+        if (!assessments || !history) return [];
+        return assessments.map(quiz => {
+            const completions = history.filter(h => h.quizId === quiz.id);
             if (completions.length === 0) {
                 return { id: quiz.id, title: quiz.title, completions: 0, avgScore: 0, passRate: 0 };
             }
-            const avgScore = completions.reduce((acc, curr) => acc + curr.percentage, 0) / completions.length;
+            const avgScore = completions.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / completions.length;
             const passRate = (completions.filter(c => c.percentage >= 70).length / completions.length) * 100;
             return { id: quiz.id, title: quiz.title, completions: completions.length, avgScore, passRate };
         });
     }, [assessments, history]);
 
     const agentStats = useMemo(() => {
-        return (agents || []).map(agent => {
-            const completions = (history || []).filter(h => h.agentId === agent.id);
+        if (!agents || !history) return [];
+        return agents.map(agent => {
+            const completions = history.filter(h => h.agentId === agent.id);
             if (completions.length === 0) {
                 return { id: agent.id, name: agent.name, email: agent.email, completions: 0, avgScore: 0 };
             }
-            const avgScore = completions.reduce((acc, curr) => acc + curr.percentage, 0) / completions.length;
+            const avgScore = completions.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / completions.length;
             return { id: agent.id, name: agent.name, email: agent.email, completions: completions.length, avgScore };
         });
     }, [agents, history]);
@@ -174,20 +175,19 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     const QuestionAnalysis: React.FC<{ question: Question, results: AssessmentResult[] }> = ({ question, results }) => {
         const questionStats = useMemo(() => {
             const totalAttempts = results.length;
-            if (totalAttempts === 0) {
-                return { correctPercentage: 0, optionPercentages: question.options.map(() => 0) };
-            }
+            if (totalAttempts === 0) return { correctPercentage: 0, optionPercentages: (question.options || []).map(() => 0) };
             let correctCount = 0;
-            const answerCounts = Array(question.options.length).fill(0);
+            const answerCounts = Array((question.options || []).length).fill(0);
             results.forEach(result => {
+                if (!result.userAnswers) return;
                 const answerIndex = result.userAnswers[question.id];
                 if (answerIndex !== undefined && answerIndex !== null) {
                     if (answerIndex === question.correctAnswerIndex) correctCount++;
                     if (answerCounts[answerIndex] !== undefined) answerCounts[answerIndex]++;
                 }
             });
-            const correctPercentage = (correctCount / totalAttempts) * 100;
-            const optionPercentages = answerCounts.map(count => (count / totalAttempts) * 100);
+            const correctPercentage = totalAttempts > 0 ? (correctCount / totalAttempts) * 100 : 0;
+            const optionPercentages = answerCounts.map(count => totalAttempts > 0 ? (count / totalAttempts) * 100 : 0);
             return { correctPercentage, optionPercentages };
         }, [question, results]);
         return (
@@ -195,7 +195,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
                 <p className="font-semibold">{question.text}</p>
                 <p className="text-sm text-green-600 font-semibold my-2">{questionStats.correctPercentage.toFixed(1)}% de acerto</p>
                 <div className="space-y-2 mt-2">
-                    {question.options.map((opt, index) => (
+                    {(question.options || []).map((opt, index) => (
                         <div key={index}>
                             <div className="flex justify-between text-sm mb-1">
                                 <span className={`font-medium ${index === question.correctAnswerIndex ? 'text-green-700' : 'text-text-secondary'}`}>{opt}</span>
@@ -212,8 +212,8 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     };
 
     const AssessmentReport = ({ quizId }: { quizId: string }) => {
-        const quiz = assessments.find(q => q.id === quizId);
-        const results = history.filter(h => h.quizId === quizId);
+        const quiz = (assessments || []).find(q => q.id === quizId);
+        const results = (history || []).filter(h => h.quizId === quizId);
         const stats = assessmentStats.find(s => s.id === quizId);
         if (!quiz || !stats) return (
             <div className="text-center p-8">
@@ -266,22 +266,26 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     };
     
     const AgentReport = ({ agentId }: { agentId: string }) => {
-        const agent = agentStats.find(a => a.id === agentId);
-        const agentHistory = history.filter(h => h.agentId === agentId).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const agent = (agents || []).find(a => a.id === agentId);
+        const agentHistory = (history || []).filter(h => h.agentId === agentId).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         if (!agent) return <p>Agente não encontrado.</p>;
 
-        // CORREÇÃO: A lógica de progresso estava incorreta.
-        // Devemos verificar o progresso nos treinamentos que o App.tsx nos passou.
-        const completedTrainings = trainings.filter(t => t.completed).length;
-        const trainingProgress = trainings.length > 0 ? (completedTrainings / trainings.length) * 100 : 0;
+        const agentProgress = (progress || []).filter(p => p.agentId === agentId && p.completed);
+        const masterTrainings = trainings || [];
+        const trainingProgress = masterTrainings.length > 0 ? (agentProgress.length / masterTrainings.length) * 100 : 0;
+        
+        const trainingsWithAgentProgress = masterTrainings.map(t => ({
+            ...t,
+            completed: agentProgress.some(p => p.trainingId === t.id)
+        }));
     
         return (
             <div className="space-y-6 animate-fade-in">
                 <BackButton onClick={() => setSelectedItem(null)} />
                 <h2 className="text-2xl font-bold">{agent.name} <span className="text-lg font-medium text-text-secondary">({agent.email})</span></h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <StatCard title="Avaliações Concluídas" value={agent.completions.toString()} />
-                    <StatCard title="Média Geral" value={`${agent.avgScore.toFixed(1)}%`} />
+                    <StatCard title="Avaliações Concluídas" value={agentHistory.length.toString()} />
+                    <StatCard title="Média Geral" value={`${agentStats.find(a => a.id === agentId)?.avgScore.toFixed(1) || '0.0'}%`} />
                     <StatCard title="Progresso em Capacitação" value={`${trainingProgress.toFixed(0)}%`} />
                 </div>
                 <div className="bg-surface rounded-lg shadow-card p-6">
@@ -314,13 +318,12 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
                 <div className="bg-surface rounded-lg shadow-card p-6">
                     <h3 className="text-xl font-bold mb-4">Status de Capacitação</h3>
                     <ul className="space-y-2">
-                        {trainings.map(t => (
+                        {trainingsWithAgentProgress.map(t => (
                             <li key={t.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
                                 <span className={`font-medium ${t.completed ? 'text-text-secondary line-through' : 'text-text-primary'}`}>{t.title}</span>
                                 {t.completed ? (
                                     <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                        Concluído
+                                        <CheckIcon /> Concluído
                                     </span>
                                 ) : (
                                      <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Pendente</span>
@@ -333,10 +336,8 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
         );
     }
     
-    // --- CORREÇÃO APLICADA AQUI ---
     if (selectedResult) {
-        const quiz = assessments.find(q => q.id === selectedResult.quizId);
-
+        const quiz = (assessments || []).find(q => q.id === selectedResult.quizId);
         if (!quiz) {
             return (
                 <div className="animate-fade-in text-center p-8">
@@ -348,7 +349,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
                 </div>
             );
         }
-        
         return <AgentResultDetails result={selectedResult} quiz={quiz} onBack={() => setSelectedResult(null)} />;
     }
 

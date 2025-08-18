@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Page, TrainingMaterial, NormDocument, Quiz, AssessmentResult, Agent } from './types';
+import { Page, TrainingMaterial, NormDocument, Quiz, AssessmentResult, Agent, TrainingProgress } from './types';
 import * as api from './services/api'; 
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -11,7 +11,7 @@ import AdminPage from './pages/AdminPage';
 import HistoryPage from './pages/HistoryPage';
 import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
-import ChangePasswordModal from './components/ChangePasswordModal'; // 1. Importe o novo modal
+import ChangePasswordModal from './components/ChangePasswordModal';
 
 interface AppProps {
   loggedInAgent: Agent;
@@ -27,11 +27,12 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
   const [assessmentsData, setAssessmentsData] = useState<Quiz[]>([]);
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentResult[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [progressData, setProgressData] = useState<TrainingProgress[]>([]); // <-- NOVO ESTADO
 
   // Estados de Controle da UI
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false); // 2. Adicione o estado para o modal
+  const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -44,8 +45,11 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
         let data;
         if (currentPage === Page.Admin && loggedInAgent.role === 'gestor') {
             data = await api.getAllDataForAdmin();
+            setProgressData(data.progress || []); // <-- PREENCHE O NOVO ESTADO NO MODO ADMIN
         } else {
             data = await api.getInitialDataForAgent(loggedInAgent.id);
+            // No modo agente, 'progress' não vem, então podemos resetar.
+            setProgressData([]); 
         }
 
         setAgents(data.agents || []);
@@ -101,8 +105,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
       setAssessmentHistory(prev => prev.filter(r => r.id !== newResult.id));
     }
   };
-
-  // 3. Adicione o handler para alterar a senha
+  
   const handleChangePassword = async (oldPassword: string, newPassword: string) => {
     return await api.changePassword(loggedInAgent.id, oldPassword, newPassword);
   };
@@ -218,6 +221,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
                 assessments={assessmentsData}
                 agents={agents}
                 assessmentHistory={assessmentHistory}
+                progress={progressData} // <-- PASSE A NOVA PROP
                 onSaveTraining={handleSaveTraining}
                 onDeleteTraining={handleDeleteTraining}
                 onSaveNorm={handleSaveNorm}
@@ -240,7 +244,7 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
          setCurrentPage={handleSetPage} 
          agent={loggedInAgent}
          onLogout={onLogout}
-         onOpenChangePassword={() => setChangePasswordModalOpen(true)} // 4. Passe a função para a Sidebar
+         onOpenChangePassword={() => setChangePasswordModalOpen(true)}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 md:px-8 py-4">
@@ -253,7 +257,6 @@ const App: React.FC<AppProps> = ({ loggedInAgent, onLogout }) => {
         </main>
       </div>
       
-      {/* 5. Renderize o modal aqui */}
       <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onClose={() => setChangePasswordModalOpen(false)}
