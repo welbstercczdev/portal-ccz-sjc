@@ -12,9 +12,9 @@ interface AdminPageProps {
     agents: Agent[];
     assessmentHistory: AssessmentResult[];
     onSaveTraining: (training: TrainingMaterial) => void;
-    onDeleteTraining: (id: string) => void;
+    onDeleteTraining: (id: number) => void;
     onSaveNorm: (norm: NormDocument) => void;
-    onDeleteNorm: (id: string) => void;
+    onDeleteNorm: (id: number) => void;
     onSaveAssessment: (quiz: Quiz) => void;
     onDeleteAssessment: (id: string) => void;
     onSaveAgent: (agent: Agent) => void;
@@ -22,19 +22,21 @@ interface AdminPageProps {
     loggedInAgentId: string;
 }
 
-// --- ÍCONES CORRIGIDOS ---
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
 const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>;
 const EyeOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" /><path d="M12.454 16.697l-1.414-1.414a4 4 0 01-5.478-5.478l-1.414-1.414A10.007 10.007 0 01.458 10C1.732 14.057 5.522 17 10 17a9.958 9.958 0 002.454-.303z" /></svg>;
-const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
 const ResetPasswordIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1 1.257-1.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
+
 
 const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [view, setView] = useState<View>('dashboard');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any | null>(null);
+
+    // States for password reset modal
     const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
     const [resettingAgent, setResettingAgent] = useState<Agent | null>(null);
 
@@ -42,32 +44,38 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
         setEditingItem(item);
         setIsModalOpen(true);
     };
+
     const closeModal = () => {
         setIsModalOpen(false);
         setEditingItem(null);
     };
+
     const openResetPasswordModal = (agent: Agent) => {
         setResettingAgent(agent);
         setIsResetPasswordModalOpen(true);
     };
+
     const closeResetPasswordModal = () => {
         setIsResetPasswordModalOpen(false);
         setResettingAgent(null);
     };
+
     const handleSavePassword = (agent: Agent, newPassword: string) => {
         props.onSaveAgent({ ...agent, password: newPassword });
         closeResetPasswordModal();
     };
-    const handleDelete = (type: View, id: string) => {
+
+    const handleDelete = (type: View, id: number | string) => {
         if (window.confirm('Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.')) {
             switch(type) {
-                case 'trainings': props.onDeleteTraining(id); break;
-                case 'norms': props.onDeleteNorm(id); break;
-                case 'assessments': props.onDeleteAssessment(id); break;
-                case 'users': props.onDeleteAgent(id); break;
+                case 'trainings': props.onDeleteTraining(id as number); break;
+                case 'norms': props.onDeleteNorm(id as number); break;
+                case 'assessments': props.onDeleteAssessment(id as string); break;
+                case 'users': props.onDeleteAgent(id as string); break;
             }
         }
     }
+
     const handleToggleVisibility = (quiz: Quiz) => {
         props.onSaveAssessment({ ...quiz, isVisible: !quiz.isVisible });
     };
@@ -340,8 +348,11 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
     const [data, setData] = useState<Partial<TrainingMaterial>>({ title: '', type: 'Artigo', description: '', url: '', completed: false });
 
     useEffect(() => {
-        if (initialData) setData(initialData);
-        else setData({ title: '', type: 'Artigo', description: '', url: '', completed: false });
+        if (initialData) {
+            setData(initialData);
+        } else {
+            setData({ title: '', type: 'Artigo', description: '', url: '', completed: false });
+        }
     }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -351,8 +362,8 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const saveData: TrainingMaterial = {
-            id: initialData?.id ?? crypto.randomUUID(),
+        const saveData = {
+            id: initialData?.id ?? 0,
             title: data.title || '',
             type: data.type || 'Artigo',
             description: data.description || '',
@@ -384,11 +395,10 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
 };
 
 const NormForm: React.FC<{initialData: NormDocument | null, onSave: (data: NormDocument) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
-    const [data, setData] = useState<Partial<NormDocument>>({ code: '', title: '', summary: '', url: '' });
+    const [data, setData] = useState<Omit<NormDocument, 'id'>>({ code: '', title: '', summary: '', url: '' });
 
     useEffect(() => {
         if (initialData) setData(initialData);
-        else setData({ code: '', title: '', summary: '', url: '' });
     }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -398,14 +408,7 @@ const NormForm: React.FC<{initialData: NormDocument | null, onSave: (data: NormD
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const saveData: NormDocument = {
-            id: initialData?.id ?? crypto.randomUUID(),
-            code: data.code || '',
-            title: data.title || '',
-            summary: data.summary || '',
-            url: data.url || '',
-        };
-        onSave(saveData);
+        onSave({ ...data, id: initialData?.id ?? 0 });
         onClose();
     };
 
@@ -428,22 +431,23 @@ const AssessmentForm: React.FC<{initialData: Quiz | null, onSave: (data: Quiz) =
 
     useEffect(() => {
         if (initialData) {
-            setQuiz({ ...initialData, isVisible: initialData.isVisible ?? true });
+            const sanitizedQuestions = initialData.questions.map(q => ({
+                ...q,
+                imageUrl: q.imageUrl || '',
+                videoUrl: q.videoUrl || '',
+            }));
+            setQuiz({ ...initialData, questions: sanitizedQuestions, isVisible: initialData.isVisible ?? true });
         } else {
-            setQuiz({ 
-                id: crypto.randomUUID(), 
-                title: '', 
-                description: '', 
-                questions: [{id: crypto.randomUUID(), text: '', options: ['', '', '', ''], correctAnswerIndex: 0, imageUrl: '', videoUrl: ''}], 
-                isVisible: true 
-            });
+            setQuiz({ id: '', title: '', description: '', questions: [{id: `q${Date.now()}`, text: '', options: ['', '', '', ''], correctAnswerIndex: 0, imageUrl: '', videoUrl: ''}], isVisible: true });
         }
     }, [initialData]);
 
     const handleQuizChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
+
         if (name === 'isVisible') {
-             setQuiz(prev => ({ ...prev, isVisible: (e.target as HTMLInputElement).checked }));
+             setQuiz(prev => ({ ...prev, isVisible: checked }));
         } else {
             setQuiz(prev => ({ ...prev, [name]: value }));
         }
@@ -470,7 +474,7 @@ const AssessmentForm: React.FC<{initialData: Quiz | null, onSave: (data: Quiz) =
     const addQuestion = () => {
         setQuiz(prev => ({
             ...prev,
-            questions: [...prev.questions, {id: crypto.randomUUID(), text: '', options: ['', '', '', ''], correctAnswerIndex: 0, imageUrl: '', videoUrl: ''}]
+            questions: [...prev.questions, {id: `q${Date.now()}`, text: '', options: ['', '', '', ''], correctAnswerIndex: 0, imageUrl: '', videoUrl: ''}]
         }));
     };
     
@@ -487,7 +491,7 @@ const AssessmentForm: React.FC<{initialData: Quiz | null, onSave: (data: Quiz) =
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(quiz);
+        onSave({ ...quiz, id: initialData?.id ?? '' });
         onClose();
     };
 
@@ -550,13 +554,16 @@ const AssessmentForm: React.FC<{initialData: Quiz | null, onSave: (data: Quiz) =
 };
 
 const AgentForm: React.FC<{initialData: Agent | null, onSave: (data: Agent) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
-    const [data, setData] = useState<Partial<Agent>>({ name: '', email: '', role: 'agente' });
+    const [data, setData] = useState<Partial<Agent>>({ name: '', email: '', role: 'agente', password: '' });
 
     useEffect(() => {
-        if (initialData) setData({ ...initialData, password: '' });
-        else setData({ name: '', email: '', role: 'agente', password: '' });
+        if (initialData) {
+            setData({ ...initialData, password: '' }); // Don't show existing password
+        } else {
+            setData({ name: '', email: '', role: 'agente', password: '' });
+        }
     }, [initialData]);
-    
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setData(prev => ({ ...prev, [name]: value }));
@@ -572,14 +579,15 @@ const AgentForm: React.FC<{initialData: Agent | null, onSave: (data: Agent) => v
             alert("A senha é obrigatória para novos usuários.");
             return;
         }
+
         const saveData: Agent = {
-            id: initialData?.id ?? crypto.randomUUID(),
+            id: initialData?.id ?? '', // App.tsx will generate ID if empty
             name: data.name,
             email: data.email,
             role: data.role || 'agente',
-            // A senha só é incluída se for um novo usuário ou se for alterada
-            ...(data.password && { password: data.password }),
+            password: data.password ? data.password : initialData?.password,
         };
+
         onSave(saveData);
         onClose();
     };
@@ -645,5 +653,6 @@ const ResetPasswordForm: React.FC<{
         </form>
     );
 };
+
 
 export default AdminPage;

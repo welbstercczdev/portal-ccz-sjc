@@ -6,12 +6,11 @@ export enum Page {
   History = 'Histórico',
   Admin = 'Gestão',
   Ranking = 'Ranking',
-  Jogos = 'Jogos',
-  Logout = 'Sair'
+  Jogos = 'Jogos'
 }
 
 export interface TrainingMaterial {
-  id: string;
+  id: number;
   title: string;
   type: 'Vídeo' | 'Artigo' | 'Apresentação';
   description: string;
@@ -20,7 +19,7 @@ export interface TrainingMaterial {
 }
 
 export interface NormDocument {
-  id: string;
+  id: number;
   code: string;
   title: string;
   summary: string;

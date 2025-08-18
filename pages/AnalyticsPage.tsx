@@ -266,7 +266,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
                 <div className="bg-surface rounded-lg shadow-card p-6">
                     <h3 className="text-xl font-bold mb-4">Análise por Questão</h3>
                     <div className="space-y-4">
-                        {quiz.questions && quiz.questions.map(q => <QuestionAnalysis key={q.id} question={q} results={results} />)}
+                        {quiz.questions.map(q => <QuestionAnalysis key={q.id} question={q} results={results} />)}
                     </div>
                 </div>
             </div>

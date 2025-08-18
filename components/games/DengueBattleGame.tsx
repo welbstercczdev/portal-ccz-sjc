@@ -538,7 +538,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const chargePercentage = (specialCharge / MAX_SPECIAL_CHARGE) * 100;
     
     return (
-        <div className="w-full flex-1 overflow-y-auto bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden font-sans bg-center bg-cover" style={{backgroundImage: "url('https://www.toptal.com/designers/subtlepatterns/uploads/watercolor.png')"}}>
+        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden font-sans bg-center bg-cover" style={{backgroundImage: "url('https://www.toptal.com/designers/subtlepatterns/uploads/watercolor.png')"}}>
             {animations.special && (
                 <div key={animations.special} className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-special-effect">
                     <div className="w-96 h-96 bg-yellow-300/50 rounded-full flex items-center justify-center filter blur-xl"></div>
@@ -547,9 +547,9 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             )}
             
             {/* Opponent Area */}
-            <div className="flex-shrink-0 flex flex-col justify-center items-center py-4">
+            <div className="h-2/5 flex flex-col justify-end items-center">
                  <div className="relative">
-                    <div className={`w-40 h-40 md:w-56 md:h-56 mb-0 transition-all duration-300 ${animations.enemy}`}>
+                    <div className={`w-64 h-64 mb-2 transition-all duration-300 ${animations.enemy}`}>
                         {React.createElement(currentEnemy.component)}
                     </div>
                     {animations.floatingText?.target === 'enemy' && (
@@ -587,11 +587,11 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </button>
 
             {/* Player Area */}
-            <div className="w-full bg-white/90 p-4 pr-32 md:pr-72 rounded-t-2xl border-t-4 border-primary shadow-2xl space-y-4 overflow-y-auto">
+            <div className="h-3/5 flex justify-center items-end relative">
                 <div className={`absolute bottom-4 right-2 md:right-4 h-64 w-64 md:h-80 md:w-80 z-10 pointer-events-none ${animations.player}`}>
                     <SvgAgent />
                 </div>
-                <div className="w-full bg-white/90 p-4 pr-32 md:pr-72 rounded-t-2xl border-t-4 border-primary shadow-2xl space-y-4 overflow-y-auto">
+                <div className="w-full bg-white/90 p-4 pr-32 md:pr-72 rounded-t-2xl border-t-4 border-primary shadow-2xl space-y-4">
                     <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 h-auto min-h-[96px] flex items-center">
                         <TypeWriter text={message} />
                     </div>

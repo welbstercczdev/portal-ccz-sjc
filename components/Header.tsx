@@ -8,7 +8,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title }) => {
   return (
     <header>
-      <h2 className="text-3xl font-extrabold text-text-primary tracking-tight">{title}</h2>
+      <h2 className="text-4xl font-extrabold text-text-primary tracking-tight">{title}</h2>
     </header>
   );
 };
