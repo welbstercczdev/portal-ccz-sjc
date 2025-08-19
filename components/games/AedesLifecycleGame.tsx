@@ -11,19 +11,19 @@ const STAGES = [
 
 // --- SVG ASSETS ---
 const SvgEgg = () => (
-    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/ciclo-da-vida/ovo.jpeg?raw=true" alt="Ovos do Aedes aegypti" className="w-full h-full object-contain" />
+    <img src="../../../imagens/ciclo-da-vida/ovo.jpeg" alt="Ovos do Aedes aegypti" className="w-full h-full object-contain" />
 );
 
 const SvgLarva = () => (
-    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/ciclo-da-vida/larva.jpeg?raw=true" alt="Larva do Aedes aegypti" className="w-full h-full object-contain" />
+    <img src="../../../imagens/ciclo-da-vida/larva.jpeg" alt="Larva do Aedes aegypti" className="w-full h-full object-contain" />
 );
 
 const SvgPupa = () => (
-    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/ciclo-da-vida/pupa.jpeg?raw=true" alt="Pupa do Aedes aegypti" className="w-full h-full object-contain" />
+    <img src="../../../imagens/ciclo-da-vida/pupa.jpeg" alt="Pupa do Aedes aegypti" className="w-full h-full object-contain" />
 );
 
 const SvgMosquito = () => (
-    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/ciclo-da-vida/aedes.jpeg?raw=true" alt="Mosquito Aedes aegypti adulto" className="w-full h-full object-contain" />
+    <img src="../../../imagens/ciclo-da-vida/aedes.jpeg" alt="Mosquito Aedes aegypti adulto" className="w-full h-full object-contain" />
 );
 
 
