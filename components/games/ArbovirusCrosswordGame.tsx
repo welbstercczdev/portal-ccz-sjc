@@ -311,7 +311,7 @@ const ArbovirusCrosswordGame: React.FC<{ onBack: () => void }> = ({ onBack }) =>
             </div>
 
             <div className="flex-grow flex flex-col lg:flex-row gap-6 min-h-0">
-                <div className="w-full lg:w-2/3 flex items-center justify-center p-2 sm:p-4 bg-white/50 rounded-lg shadow-inner-light">
+                <div className="w-full lg:w-2/3 flex items-start justify-center p-2 sm:p-4 bg-white/50 rounded-lg shadow-inner-light">
                     <div className="grid bg-slate-800 border-4 border-slate-800 shadow-2xl" style={{ gridTemplateColumns: `repeat(${GRID_WIDTH}, minmax(0, 1fr))`, aspectRatio: `${GRID_WIDTH}/${GRID_HEIGHT}` }}>
                         {grid.map((rowArr, r) =>
                             rowArr.map((cell, c) => {
