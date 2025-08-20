@@ -3,22 +3,22 @@ import React, { useState, useEffect, useMemo } from 'react';
 // --- Assets and Components ---
 
 const SvgAgent: React.FC = () => (
-    <img src="../../../imagens/batalha-contra-a-dengue/agente.png" alt="Agente de Saúde" className="w-full h-full object-contain" />
+    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/agente.png?raw=true" alt="Agente de Saúde" className="w-full h-full object-contain" />
 );
 
 const SvgTireHotspot: React.FC = () => (
-    <img src="../../../imagens/batalha-contra-a-dengue/pneu.png" alt="Pneu com água parada" className="w-full h-full object-contain" />
+    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/pneu.png?raw=true" alt="Pneu com água parada" className="w-full h-full object-contain" />
 );
 
 const SvgTireEvolvedHotspot: React.FC = () => (
-    <img src="../../../imagens/batalha-contra-a-dengue/pneuevoluido.png" alt="Pneu com infestação grave de mosquitos" className="w-full h-full object-contain" />
+    <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/pneuevoluido.png?raw=true" alt="Pneu com infestação grave de mosquitos" className="w-full h-full object-contain" />
 );
 
 
 const SvgPlantSaucerHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100">
         {/* Plant Image */}
-        <image href="../../../imagens/batalha-contra-a-dengue/vasodeplantanoprato.png" x="5" y="5" width="90" height="90" />
+        <image href="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/vasodeplantanoprato.png?raw=true" x="5" y="5" width="90" height="90" />
         {/* Larvae */}
         <circle cx="40" cy="83" r="1.5" fill="black" className="animate-pulse" />
         <circle cx="50" cy="85" r="1.5" fill="black" className="animate-pulse" style={{ animationDelay: '0.3s' }} />
@@ -29,7 +29,7 @@ const SvgPlantSaucerHotspot: React.FC = () => (
 const SvgPlantSaucerEvolvedHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100">
         {/* Evolved Plant Image */}
-        <image href="../../../imagens/batalha-contra-a-dengue/vasodeplantanoprato.png" x="5" y="5" width="90" height="90" style={{ filter: 'grayscale(60%) sepia(30%) brightness(0.8)' }} />
+        <image href="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/vasodeplantanoprato.png?raw=true" x="5" y="5" width="90" height="90" style={{ filter: 'grayscale(60%) sepia(30%) brightness(0.8)' }} />
         {/* More Larvae and Pupae */}
         <circle cx="40" cy="83" r="2" fill="black" className="animate-pulse" />
         <ellipse cx="50" cy="85" rx="3" ry="2" fill="#333" className="animate-pulse" style={{ animationDelay: '0.3s' }} />
@@ -42,19 +42,19 @@ const SvgPlantSaucerEvolvedHotspot: React.FC = () => (
 
 const SvgWaterTankHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100">
-        <image href="../../../imagens/batalha-contra-a-dengue/caixadagua.png" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid meet" />
+        <image href="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/caixadagua.png?raw=true" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid meet" />
     </svg>
 );
 
 const SvgGutterHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <image href="../../../imagens/batalha-contra-a-dengue/calha.png" x="0" y="0" width="100" height="100" />
+        <image href="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/calha.png?raw=true" x="0" y="0" width="100" height="100" />
     </svg>
 );
 
 const SvgPetBottleHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <image href="../../../imagens/batalha-contra-a-dengue/garrafa%20pet.png" x="0" y="0" width="100" height="100" />
+        <image href="https://raw.githubusercontent.com/welbstercczdev/portal-ccz-sjc/refs/heads/main/imagens/batalha-contra-a-dengue/garrafa%20pet.png" x="0" y="0" width="100" height="100" />
     </svg>
 );
 
