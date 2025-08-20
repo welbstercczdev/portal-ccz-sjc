@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrainingMaterial, NormDocument, Quiz, Question, Agent, AssessmentResult } from '../types';
+import { TrainingMaterial, NormDocument, Quiz, Question, Agent, AssessmentResult, TrainingStep } from '../types';
 import Modal from '../components/Modal';
 import AnalyticsPage from './AnalyticsPage';
 
@@ -27,7 +27,7 @@ const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>;
 const EyeOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" /><path d="M12.454 16.697l-1.414-1.414a4 4 0 01-5.478-5.478l-1.414-1.414A10.007 10.007 0 01.458 10C1.732 14.057 5.522 17 10 17a9.958 9.958 0 002.454-.303z" /></svg>;
-const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
 const ResetPasswordIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1 1.257-1.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
 
 
@@ -94,7 +94,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                 <thead className="bg-slate-50 border-b border-border-color">
                                     <tr>
                                         <th className="p-3 font-semibold">Título</th>
-                                        <th className="p-3 font-semibold">Tipo</th>
+                                        <th className="p-3 font-semibold">Etapas</th>
                                         <th className="p-3 font-semibold">Ações</th>
                                     </tr>
                                 </thead>
@@ -102,7 +102,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                     {props.trainings.map(item => (
                                         <tr key={item.id} className="border-b border-border-color last:border-b-0">
                                             <td className="p-3">{item.title}</td>
-                                            <td className="p-3">{item.type}</td>
+                                            <td className="p-3">{item.steps.length}</td>
                                             <td className="p-3 flex gap-2">
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
                                                 <button onClick={() => handleDelete('trainings', item.id)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
@@ -345,54 +345,164 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 
 
 const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (data: TrainingMaterial) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
-    const [data, setData] = useState<Partial<TrainingMaterial>>({ title: '', type: 'Artigo', description: '', url: '', completed: false });
+    const [training, setTraining] = useState<TrainingMaterial>(
+        initialData || {
+            id: 0,
+            title: '',
+            description: '',
+            steps: [{ type: 'content', title: '', content: '' }],
+            completed: false,
+            progress: 0
+        }
+    );
 
     useEffect(() => {
         if (initialData) {
-            setData(initialData);
+            setTraining(initialData);
         } else {
-            setData({ title: '', type: 'Artigo', description: '', url: '', completed: false });
+            // Default new training structure
+            setTraining({
+                id: 0, // Will be set in App.tsx
+                title: '',
+                description: '',
+                steps: [{ type: 'content', title: 'Introdução', content: 'Bem-vindo(a) à capacitação!' }],
+                completed: false,
+                progress: 0
+            });
         }
     }, [initialData]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleTrainingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setData(prev => ({ ...prev, [name]: value }));
+        setTraining(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleStepChange = (stepIndex: number, field: keyof TrainingStep, value: string) => {
+        const newSteps = [...training.steps];
+        const step = newSteps[stepIndex] as any;
+        step[field] = value;
+        
+        if (field === 'type' && value === 'quiz' && !step.question) {
+            step.question = { id: `q-${Date.now()}`, text: '', options: ['', '', '', ''], correctAnswerIndex: 0 };
+        }
+        setTraining(prev => ({ ...prev, steps: newSteps }));
+    };
+
+    const handleQuestionChange = (stepIndex: number, field: 'text' | `option-${number}`, value: string) => {
+        const newSteps = [...training.steps];
+        const question = newSteps[stepIndex].question;
+        if (!question) return;
+
+        if (field.startsWith('option-')) {
+            const optIndex = parseInt(field.split('-')[1]);
+            question.options[optIndex] = value;
+        } else {
+            (question as any)[field] = value;
+        }
+        setTraining(prev => ({ ...prev, steps: newSteps }));
+    };
+
+    const handleCorrectAnswerChange = (stepIndex: number, correctIndex: number) => {
+        const newSteps = [...training.steps];
+        const question = newSteps[stepIndex].question;
+        if (!question) return;
+        question.correctAnswerIndex = correctIndex;
+        setTraining(prev => ({ ...prev, steps: newSteps }));
+    };
+
+    const addStep = () => {
+        setTraining(prev => ({
+            ...prev,
+            steps: [...prev.steps, { type: 'content', title: '', content: '' }]
+        }));
+    };
+
+    const removeStep = (stepIndex: number) => {
+        if (training.steps.length <= 1) {
+            alert("A capacitação deve ter pelo menos uma etapa.");
+            return;
+        }
+        setTraining(prev => ({
+            ...prev,
+            steps: prev.steps.filter((_, index) => index !== stepIndex)
+        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const saveData = {
-            id: initialData?.id ?? 0,
-            title: data.title || '',
-            type: data.type || 'Artigo',
-            description: data.description || '',
-            url: data.url || '',
-            completed: !!data.completed,
-        };
-        onSave(saveData);
+        onSave(training);
         onClose();
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <FormField label="Título"><TextInput name="title" value={data.title} onChange={handleChange} required /></FormField>
-            <FormField label="Tipo">
-                <Select name="type" value={data.type} onChange={handleChange}>
-                    <option>Artigo</option>
-                    <option>Vídeo</option>
-                    <option>Apresentação</option>
-                </Select>
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <FormField label="Título da Capacitação">
+                <TextInput name="title" value={training.title} onChange={handleTrainingChange} required />
             </FormField>
-            <FormField label="Descrição"><TextArea name="description" value={data.description} onChange={handleChange} required /></FormField>
-            <FormField label="URL"><TextInput name="url" type="url" value={data.url} onChange={handleChange} required /></FormField>
-            <div className="flex justify-end gap-3 mt-6">
+            <FormField label="Descrição da Capacitação">
+                <TextArea name="description" value={training.description} onChange={handleTrainingChange} required />
+            </FormField>
+            
+            <h4 className="text-lg font-semibold border-t border-border-color pt-4 mt-6">Etapas da Capacitação</h4>
+            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 -mr-2">
+                {training.steps.map((step, stepIndex) => (
+                    <div key={stepIndex} className="p-4 bg-slate-50 rounded-lg border border-border-color relative">
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="font-semibold">Etapa {stepIndex + 1}</p>
+                            {training.steps.length > 1 && (
+                                <button type="button" onClick={() => removeStep(stepIndex)} className="text-red-500 hover:text-red-700"><DeleteIcon/></button>
+                            )}
+                        </div>
+
+                        <FormField label="Tipo de Etapa">
+                            <Select value={step.type} onChange={e => handleStepChange(stepIndex, 'type', e.target.value)}>
+                                <option value="content">Conteúdo</option>
+                                <option value="quiz">Quiz (Verificação)</option>
+                            </Select>
+                        </FormField>
+                        <FormField label="Título da Etapa">
+                            <TextInput value={step.title} onChange={e => handleStepChange(stepIndex, 'title', e.target.value)} required />
+                        </FormField>
+                        <FormField label="Conteúdo / Descrição">
+                            <TextArea value={step.content} onChange={e => handleStepChange(stepIndex, 'content', e.target.value)} required />
+                        </FormField>
+                        <FormField label="URL da Imagem (Opcional)">
+                            <TextInput type="url" placeholder="https://exemplo.com/imagem.png" value={step.imageUrl || ''} onChange={e => handleStepChange(stepIndex, 'imageUrl', e.target.value)} />
+                        </FormField>
+                         <FormField label="URL do Vídeo (Opcional)">
+                            <TextInput type="url" placeholder="https://exemplo.com/video.mp4" value={step.videoUrl || ''} onChange={e => handleStepChange(stepIndex, 'videoUrl', e.target.value)} />
+                        </FormField>
+
+                        {step.type === 'quiz' && step.question && (
+                             <div className="mt-4 pt-4 border-t border-dashed border-slate-300">
+                                <p className="font-semibold mb-2">Configuração do Quiz</p>
+                                <FormField label="Texto da Pergunta">
+                                    <TextInput value={step.question.text} onChange={e => handleQuestionChange(stepIndex, 'text', e.target.value)} required />
+                                </FormField>
+                                {step.question.options.map((opt, optIndex) => (
+                                    <FormField key={optIndex} label={`Opção ${optIndex + 1}`}>
+                                        <div className="flex items-center gap-2">
+                                        <TextInput value={opt} onChange={e => handleQuestionChange(stepIndex, `option-${optIndex}`, e.target.value)} required />
+                                        <input type="radio" name={`correctAnswer-${stepIndex}`} checked={step.question.correctAnswerIndex === optIndex} onChange={() => handleCorrectAnswerChange(stepIndex, optIndex)} title="Marcar como correta" className="h-5 w-5 text-primary focus:ring-primary"/>
+                                        </div>
+                                    </FormField>
+                                ))}
+                             </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            <button type="button" onClick={addStep} className="mt-4 text-primary font-semibold hover:underline flex items-center"><PlusIcon/> Adicionar Etapa</button>
+            
+            <div className="flex justify-end gap-3 pt-4 border-t border-border-color">
                 <button type="button" onClick={onClose} className="bg-slate-200 text-text-secondary font-bold py-2 px-4 rounded-lg hover:bg-slate-300">Cancelar</button>
-                <button type="submit" className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark">Salvar</button>
+                <button type="submit" className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark">Salvar Capacitação</button>
             </div>
         </form>
     );
 };
+
 
 const NormForm: React.FC<{initialData: NormDocument | null, onSave: (data: NormDocument) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
     const [data, setData] = useState<Omit<NormDocument, 'id'>>({ code: '', title: '', summary: '', url: '' });

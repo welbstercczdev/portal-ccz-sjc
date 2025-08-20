@@ -23,8 +23,7 @@ const App: React.FC = () => {
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentResult[]>(INITIAL_HISTORY_DATA);
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
 
-
-  // CRUD Handlers
+  // CRUD Handlers for Training (REMOVIDO onToggleCompletion, ADICIONADO onUpdateProgress)
   const handleSaveTraining = (training: TrainingMaterial) => {
     setTrainingData(prev => {
       const exists = prev.some(t => t.id === training.id);
@@ -36,11 +35,18 @@ const App: React.FC = () => {
   };
   const handleDeleteTraining = (id: number) => setTrainingData(prev => prev.filter(t => t.id !== id));
 
-  const handleToggleTrainingCompletion = (id: number) => {
-    setTrainingData(prev =>
-      prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+  const handleUpdateTrainingProgress = (id: number, currentStep: number, totalSteps: number) => {
+      setTrainingData(prev => prev.map(t => {
+          if (t.id === id) {
+              const progress = Math.round((currentStep / totalSteps) * 100);
+              const completed = currentStep >= totalSteps;
+              return { ...t, progress, completed };
+          }
+          return t;
+      }));
   };
+  
+  // --- O restante dos handlers (Norm, Assessment, Agent) permanece o mesmo ---
 
   const handleSaveNorm = (norm: NormDocument) => {
     setNormsData(prev => {
@@ -106,7 +112,7 @@ const App: React.FC = () => {
       case Page.Home:
         return <HomePage setActivePage={handleSetPage} />;
       case Page.Training:
-        return <TrainingPage materials={trainingData} onToggleCompletion={handleToggleTrainingCompletion} />;
+        return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} />;
       case Page.Assessments:
         return <AssessmentPage assessments={assessmentsData} onAddResult={handleAddAssessmentResult} />;
       case Page.Norms:

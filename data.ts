@@ -15,10 +15,44 @@ export const AGENTS: Agent[] = [
 ];
 
 export const INITIAL_TRAINING_DATA: TrainingMaterial[] = [
-  { id: 1, title: "Manejo e Controle de Aedes aegypti", type: "Artigo", description: "Protocolo completo para identificação de focos e controle do vetor da Dengue, Zika e Chikungunya.", url: "#", completed: true },
-  { id: 2, title: "Prevenção da Raiva: Vacinação Animal", type: "Vídeo", description: "Vídeo treinamento sobre as melhores práticas de vacinação antirrábica em cães e gatos.", url: "#", completed: false },
-  { id: 3, title: "Identificação de Animais Peçonhentos", type: "Apresentação", description: "Slides com fotos e características dos principais animais peçonhentos de interesse em saúde pública.", url: "#", completed: true },
-  { id: 4, title: "Controle da Leishmaniose Visceral", type: "Artigo", description: "Estratégias atuais para o controle do flebotomíneo e manejo de cães infectados.", url: "#", completed: false },
+  {
+    id: 1,
+    title: 'Controle de Vetores: Aedes aegypti',
+    description: 'Um guia completo sobre o ciclo de vida e os métodos de controle do mosquito transmissor da dengue, zika e chikungunya.',
+    steps: [
+      {
+        type: 'content',
+        title: 'Introdução ao Aedes aegypti',
+        content: 'O Aedes aegypti é um mosquito doméstico, que vive dentro ou ao redor de domicílios. Ele é o principal transmissor das doenças dengue, zika e chikungunya. Conhecer seu comportamento é o primeiro passo para um controle eficaz.',
+        imageUrl: 'https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/ciclo-da-vida/aedes.jpeg?raw=true'
+      },
+      {
+        type: 'content',
+        title: 'Identificando Criadouros',
+        content: 'Os ovos do mosquito são depositados em recipientes com água parada. Os principais criadouros são pneus, vasos de plantas, garrafas, calhas entupidas e caixas d\'água mal vedadas. A eliminação desses recipientes é a forma mais eficaz de prevenção.',
+        imageUrl: 'https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/pneu.png?raw=true'
+      },
+      {
+        type: 'quiz',
+        title: 'Verificação de Conhecimento',
+        content: 'Vamos testar o que você aprendeu até agora.',
+        question: {
+          id: 'q1-1',
+          text: 'Qual das seguintes ações é a MAIS eficaz para prevenir a proliferação do Aedes aegypti?',
+          options: ['Usar repelente corporal', 'Eliminar recipientes com água parada', 'Instalar telas em janelas', 'Manter o lixo fechado'],
+          correctAnswerIndex: 1
+        }
+      },
+      {
+        type: 'content',
+        title: 'Conclusão e Próximos Passos',
+        content: 'Parabéns por revisar os conceitos básicos! O controle do Aedes aegypti é um esforço contínuo que depende da vigilância e da ação de cada agente. Continue seu excelente trabalho protegendo a comunidade.'
+      }
+    ],
+    completed: false,
+    progress: 0,
+  },
+  // (Você pode adicionar mais módulos de treinamento aqui)
 ];
 
 export const INITIAL_NORMS_DATA: NormDocument[] = [

@@ -9,13 +9,23 @@ export enum Page {
   Jogos = 'Jogos'
 }
 
+// NOVO: Define a estrutura de uma etapa do treinamento
+export interface TrainingStep {
+type: 'content' | 'quiz';
+title: string;
+content: string; // Pode conter markdown ou texto simples
+imageUrl?: string;
+videoUrl?: string;
+question?: Question; // Usado se o tipo for 'quiz'
+}
+// ATUALIZADO: A estrutura do TrainingMaterial foi modificada
 export interface TrainingMaterial {
-  id: number;
-  title: string;
-  type: 'Vídeo' | 'Artigo' | 'Apresentação';
-  description: string;
-  url: string;
-  completed: boolean;
+id: number;
+title: string;
+description: string;
+steps: TrainingStep[];
+completed: boolean;
+progress: number; // Percentual de 0 a 100
 }
 
 export interface NormDocument {
