@@ -95,6 +95,37 @@ const RankingPage: React.FC<RankingPageProps> = ({ agents, history, assessments,
     }, [history, selectedQuizId]);
     
     const currentRankingData = mode === 'general' ? generalRanking : assessmentRanking;
+    const top3 = currentRankingData.slice(0, 3);
+    
+    const userRankIndex = currentRankingData.findIndex(item => item.agentId === loggedInAgentId);
+    const userData = userRankIndex !== -1 ? currentRankingData[userRankIndex] : null;
+    const isUserOutsideTop3 = userRankIndex >= 3;
+
+    const renderRow = (item: GeneralRankingItem | AssessmentRankingItem, rankIndex: number) => {
+        const isUser = item.agentId === loggedInAgentId;
+        return (
+             <tr key={item.agentId} className={`border-t border-border-color transition-colors ${isUser ? 'bg-primary-light' : 'hover:bg-slate-50'}`}>
+                <td className="p-4 text-center">
+                    <span className={`font-bold text-lg ${isUser ? 'text-primary' : 'text-text-primary'}`}>{rankIndex + 1}</span>
+                    <span className="text-xl ml-1">{getMedal(rankIndex)}</span>
+                </td>
+                <td className="p-4 font-semibold text-text-primary">{item.agentName}{isUser && <span className="text-xs text-primary font-bold ml-2">(Você)</span>}</td>
+                {mode === 'general' ? (
+                    <>
+                        <td className="p-4 text-center text-text-secondary font-medium">{(item as GeneralRankingItem).completions}</td>
+                        <td className="p-4 text-center font-bold text-lg text-primary">{(item as GeneralRankingItem).avgScore.toFixed(1)}%</td>
+                        <td className="p-4 text-center text-text-secondary font-medium">{formatDuration((item as GeneralRankingItem).avgDuration)}</td>
+                    </>
+                ) : (
+                    <>
+                        <td className="p-4 text-center text-text-secondary font-medium">{(item as AssessmentRankingItem).score}/{(item as AssessmentRankingItem).totalQuestions}</td>
+                        <td className="p-4 text-center font-bold text-lg text-primary">{(item as AssessmentRankingItem).percentage.toFixed(1)}%</td>
+                        <td className="p-4 text-center text-text-secondary font-medium">{formatDuration((item as AssessmentRankingItem).duration)}</td>
+                    </>
+                )}
+            </tr>
+        )
+    };
 
     return (
         <div className="space-y-6">
@@ -141,31 +172,17 @@ const RankingPage: React.FC<RankingPageProps> = ({ agents, history, assessments,
                             </tr>
                         </thead>
                         <tbody>
-                            {currentRankingData.map((item, index) => {
-                                const isUser = item.agentId === loggedInAgentId;
-                                return (
-                                    <tr key={item.agentId} className={`border-t border-border-color transition-colors ${isUser ? 'bg-primary-light' : 'hover:bg-slate-50'}`}>
-                                        <td className="p-4 text-center">
-                                            <span className={`font-bold text-lg ${isUser ? 'text-primary' : 'text-text-primary'}`}>{index + 1}</span>
-                                            <span className="text-xl ml-1">{getMedal(index)}</span>
-                                        </td>
-                                        <td className="p-4 font-semibold text-text-primary">{item.agentName}{isUser && <span className="text-xs text-primary font-bold ml-2">(Você)</span>}</td>
-                                        {mode === 'general' ? (
-                                            <>
-                                                <td className="p-4 text-center text-text-secondary font-medium">{(item as GeneralRankingItem).completions}</td>
-                                                <td className="p-4 text-center font-bold text-lg text-primary">{(item as GeneralRankingItem).avgScore.toFixed(1)}%</td>
-                                                <td className="p-4 text-center text-text-secondary font-medium">{formatDuration((item as GeneralRankingItem).avgDuration)}</td>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td className="p-4 text-center text-text-secondary font-medium">{(item as AssessmentRankingItem).score}/{(item as AssessmentRankingItem).totalQuestions}</td>
-                                                <td className="p-4 text-center font-bold text-lg text-primary">{(item as AssessmentRankingItem).percentage.toFixed(1)}%</td>
-                                                <td className="p-4 text-center text-text-secondary font-medium">{formatDuration((item as AssessmentRankingItem).duration)}</td>
-                                            </>
-                                        )}
+                            {top3.map((item, index) => renderRow(item, index))}
+
+                            {isUserOutsideTop3 && userData && (
+                                <>
+                                    <tr className="border-t border-border-color">
+                                        <td colSpan={5} className="py-2 text-center text-text-secondary text-2xl font-bold">...</td>
                                     </tr>
-                                )
-                            })}
+                                    {renderRow(userData, userRankIndex)}
+                                </>
+                            )}
+                            
                              {currentRankingData.length === 0 && (
                                 <tr className="border-t border-border-color">
                                     <td colSpan={5} className="text-center p-12 text-text-secondary">
