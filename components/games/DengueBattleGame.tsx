@@ -75,7 +75,7 @@ const TypeWriter: React.FC<{ text: string }> = ({ text }) => {
         return () => clearInterval(intervalId);
     }, [text]);
 
-    return <p className="text-lg text-text-primary">{displayedText}</p>;
+    return <p className="text-base sm:text-lg text-text-primary">{displayedText}</p>;
 };
 
 const HealthBar: React.FC<{ value: number, max: number, color: string }> = ({ value, max, color }) => {
@@ -538,7 +538,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const chargePercentage = (specialCharge / MAX_SPECIAL_CHARGE) * 100;
     
     return (
-        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden font-sans bg-center bg-cover" style={{backgroundImage: "url('https://www.toptal.com/designers/subtlepatterns/uploads/watercolor.png')"}}>
+        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-2 sm:p-4 flex flex-col relative font-sans bg-center bg-cover overflow-hidden" style={{backgroundImage: "url('https://www.toptal.com/designers/subtlepatterns/uploads/watercolor.png')"}}>
             {animations.special && (
                 <div key={animations.special} className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-special-effect">
                     <div className="w-96 h-96 bg-yellow-300/50 rounded-full flex items-center justify-center filter blur-xl"></div>
@@ -547,9 +547,9 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             )}
             
             {/* Opponent Area */}
-            <div className="h-2/5 flex flex-col justify-end items-center">
+            <div className="flex-grow flex flex-col justify-end items-center pb-2 min-h-0">
                  <div className="relative">
-                    <div className={`w-64 h-64 mb-2 transition-all duration-300 ${animations.enemy}`}>
+                    <div className={`w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 mb-2 transition-all duration-300 ${animations.enemy}`}>
                         {React.createElement(currentEnemy.component)}
                     </div>
                     {animations.floatingText?.target === 'enemy' && (
@@ -559,7 +559,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     )}
                 </div>
 
-                <div className="w-full max-w-sm bg-white/80 p-3 rounded-lg shadow-md border border-slate-300 space-y-2">
+                <div className="w-full max-w-xs sm:max-w-sm bg-white/80 p-2 sm:p-3 rounded-lg shadow-md border border-slate-300 space-y-2">
                     <div className="flex justify-between font-bold text-sm">
                         <span>{currentEnemy.name}</span>
                         <span>HP</span>
@@ -569,7 +569,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             {/* Proliferation Bar */}
-            <div className="absolute top-4 right-4 w-full max-w-xs md:max-w-sm z-20">
+            <div className="absolute top-2 sm:top-4 right-2 sm:right-4 w-full max-w-[280px] sm:max-w-xs md:max-w-sm z-20">
                 <div className="bg-white/80 p-2 rounded-lg shadow-md border border-slate-300 space-y-1 relative">
                      <p className="text-center font-bold text-xs text-blue-800">Nível de Proliferação</p>
                     <HealthBar value={proliferation} max={MAX_PROLIFERATION} color="#3b82f6" />
@@ -582,29 +582,29 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
             
              {/* Back button */}
-            <button onClick={onBack} className="absolute top-4 left-4 bg-white/80 text-text-primary font-bold py-2 px-4 rounded-lg hover:bg-white/90 transition-colors z-20">
+            <button onClick={onBack} className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-white/80 text-text-primary font-bold py-2 px-4 rounded-lg hover:bg-white/90 transition-colors z-20">
                 &larr; Voltar
             </button>
 
             {/* Player Area */}
-            <div className="h-3/5 flex justify-center items-end relative">
-                <div className={`absolute bottom-4 right-2 md:right-4 h-64 w-64 md:h-80 md:w-80 z-10 pointer-events-none ${animations.player}`}>
+            <div className="flex-shrink-0 flex justify-center items-end relative mt-2">
+                <div className={`absolute bottom-2 right-1 h-36 w-36 sm:h-48 sm:w-48 z-10 pointer-events-none ${animations.player}`}>
                     <SvgAgent />
                 </div>
-                <div className="w-full bg-white/90 p-4 pr-32 md:pr-72 rounded-t-2xl border-t-4 border-primary shadow-2xl space-y-4">
-                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 h-auto min-h-[96px] flex items-center">
+                <div className="w-full bg-white/90 p-3 sm:p-4 pr-24 sm:pr-32 rounded-t-2xl border-t-4 border-primary shadow-2xl space-y-3">
+                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-3 sm:p-4 h-auto min-h-[72px] flex items-center">
                         <TypeWriter text={message} />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                         {currentEnemy.actions.map(action => (
                              <button 
                                 key={action.id}
                                 onClick={() => handlePlayerAction(action)}
                                 disabled={!isPlayerTurn}
-                                className="p-4 text-left rounded-lg shadow-md border-2 border-slate-400 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+                                className="p-3 text-left rounded-lg shadow-md border-2 border-slate-400 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed transition-all transform hover:scale-105"
                             >
-                                <span className="font-bold text-lg">{action.name}</span>
+                                <span className="font-bold text-sm sm:text-base">{action.name}</span>
                             </button>
                         ))}
                     </div>
@@ -617,9 +617,9 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <button
                             onClick={handleSpecialAction}
                             disabled={!isPlayerTurn || specialCharge < MAX_SPECIAL_CHARGE}
-                            className="w-full p-4 text-center rounded-lg shadow-lg border-2 border-amber-500 bg-amber-300 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-600 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none"
+                            className="w-full p-3 text-center rounded-lg shadow-lg border-2 border-amber-500 bg-amber-300 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-600 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none"
                         >
-                            <span className="font-bold text-xl text-amber-900">{SPECIAL_ACTION.name} {specialCharge < MAX_SPECIAL_CHARGE && `(${Math.floor(specialCharge)}%)`}</span>
+                            <span className="font-bold text-base sm:text-xl text-amber-900">{SPECIAL_ACTION.name} {specialCharge < MAX_SPECIAL_CHARGE && `(${Math.floor(specialCharge)}%)`}</span>
                         </button>
                     </div>
                 </div>
