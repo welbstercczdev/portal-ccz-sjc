@@ -123,7 +123,7 @@ const AedesLifecycleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
 
     return (
-        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-hidden">
+        <div className="w-full h-[calc(100vh-10rem)] bg-slate-100 rounded-xl shadow-inner-light p-4 flex flex-col relative overflow-y-auto">
             {/* Header */}
             <div className="flex justify-between items-center mb-4 px-2">
                 <h2 className="text-2xl font-bold text-primary">Organize o Ciclo de Vida</h2>
