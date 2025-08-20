@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { TrainingMaterial, TrainingStep } from '../types';
+import { TrainingMaterial } from '../types';
 
 interface TrainingPageProps {
   materials: TrainingMaterial[];
-  onUpdateProgress: (id: number, currentStep: number, totalSteps: number) => void;
+  onUpdateProgress: (trainingId: number, currentStepIndex: number) => void;
+  loggedInAgentId: string;
 }
 
 // --- Componente Executor do Treinamento ---
 const TrainingRunner: React.FC<{
   material: TrainingMaterial;
   onExit: () => void;
-  onUpdateProgress: (id: number, currentStep: number, totalSteps: number) => void;
-}> = ({ material, onExit, onUpdateProgress }) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  onUpdateProgress: (trainingId: number, currentStepIndex: number) => void;
+  initialStep: number;
+}> = ({ material, onExit, onUpdateProgress, initialStep }) => {
+  const [currentStepIndex, setCurrentStepIndex] = useState(initialStep);
   const [quizAnswer, setQuizAnswer] = useState<{ selected: number | null, isCorrect: boolean | null }>({ selected: null, isCorrect: null });
 
   const currentStep = material.steps[currentStepIndex];
   const totalSteps = material.steps.length;
 
   useEffect(() => {
-    // O progresso agora é baseado no número de etapas visitadas (índice + 1)
-    onUpdateProgress(material.id, currentStepIndex + 1, totalSteps);
-  }, [material.id, currentStepIndex, totalSteps, onUpdateProgress]);
+    onUpdateProgress(material.id, currentStepIndex);
+  }, [material.id, currentStepIndex, onUpdateProgress]);
 
   const handleNext = () => {
     if (currentStepIndex < totalSteps - 1) {
       setCurrentStepIndex(prev => prev + 1);
-      setQuizAnswer({ selected: null, isCorrect: null }); // Reseta o estado do quiz
+      setQuizAnswer({ selected: null, isCorrect: null });
     } else {
-        // Apenas sai, pois o progresso já foi atualizado para 100% no useEffect
         onExit();
     }
   };
@@ -41,7 +41,7 @@ const TrainingRunner: React.FC<{
   };
 
   const handleQuizSubmit = (selectedIndex: number) => {
-    if (quizAnswer.isCorrect) return; // Não permite mudar depois de acertar
+    if (quizAnswer.isCorrect) return;
     const correct = selectedIndex === currentStep.question!.correctAnswerIndex;
     setQuizAnswer({ selected: selectedIndex, isCorrect: correct });
   };
@@ -114,10 +114,11 @@ const TrainingRunner: React.FC<{
 
 
 // --- Componente da Lista de Módulos ---
-const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material: TrainingMaterial) => void; }> = ({ materials, onStart }) => {
-    const completedCount = materials.filter(m => m.completed).length;
+const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material: TrainingMaterial) => void; loggedInAgentId: string; }> = ({ materials, onStart, loggedInAgentId }) => {
+    const agentProgressData = materials.map(m => m.agentProgress[loggedInAgentId] || { progress: 0, completed: false });
+    const completedCount = agentProgressData.filter(p => p.completed).length;
     const totalCount = materials.length;
-    const overallProgress = totalCount > 0 ? (materials.reduce((sum, m) => sum + m.progress, 0) / totalCount) : 0;
+    const overallProgress = totalCount > 0 ? (agentProgressData.reduce((sum, p) => sum + p.progress, 0) / totalCount) : 0;
     
     return(
         <div>
@@ -133,22 +134,25 @@ const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {materials.map((material, index) => (
-                    <div key={material.id} className="bg-surface rounded-xl shadow-card transition-all duration-300 flex flex-col hover:shadow-card-hover hover:-translate-y-1 animate-stagger-item-in" style={{ animationDelay: `${index * 75}ms` }}>
-                        <div className="p-6 flex-grow flex flex-col">
-                            <h3 className="text-xl font-bold text-text-primary">{material.title}</h3>
-                            <p className="text-text-secondary my-2 flex-grow">{material.description}</p>
-                             <div className="w-full bg-slate-200 rounded-full h-2 my-3">
-                                <div className="bg-primary h-2 rounded-full" style={{ width: `${material.progress}%` }}></div>
+                {materials.map((material, index) => {
+                    const agentProgress = material.agentProgress[loggedInAgentId] || { progress: 0, completed: false };
+                    return (
+                        <div key={material.id} className="bg-surface rounded-xl shadow-card transition-all duration-300 flex flex-col hover:shadow-card-hover hover:-translate-y-1 animate-stagger-item-in" style={{ animationDelay: `${index * 75}ms` }}>
+                            <div className="p-6 flex-grow flex flex-col">
+                                <h3 className="text-xl font-bold text-text-primary">{material.title}</h3>
+                                <p className="text-text-secondary my-2 flex-grow">{material.description}</p>
+                                <div className="w-full bg-slate-200 rounded-full h-2 my-3">
+                                    <div className="bg-primary h-2 rounded-full" style={{ width: `${agentProgress.progress}%` }}></div>
+                                </div>
+                            </div>
+                            <div className="p-6 pt-0 border-t border-border-color">
+                                <button onClick={() => onStart(material)} className="w-full bg-primary text-white font-bold py-3 px-5 rounded-lg transition-colors hover:bg-primary-dark disabled:bg-slate-400">
+                                    {agentProgress.completed ? 'Revisar' : agentProgress.progress > 0 ? 'Continuar' : 'Iniciar'}
+                                </button>
                             </div>
                         </div>
-                        <div className="p-6 pt-0 border-t border-border-color">
-                             <button onClick={() => onStart(material)} className="w-full bg-primary text-white font-bold py-3 px-5 rounded-lg transition-colors hover:bg-primary-dark disabled:bg-slate-400">
-                                {material.completed ? 'Revisar' : material.progress > 0 ? 'Continuar' : 'Iniciar'}
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
@@ -156,14 +160,20 @@ const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material
 
 
 // --- Componente Principal da Página ---
-const TrainingPage: React.FC<TrainingPageProps> = ({ materials, onUpdateProgress }) => {
+const TrainingPage: React.FC<TrainingPageProps> = ({ materials, onUpdateProgress, loggedInAgentId }) => {
   const [activeTraining, setActiveTraining] = useState<TrainingMaterial | null>(null);
 
   if (activeTraining) {
-    return <TrainingRunner material={activeTraining} onExit={() => setActiveTraining(null)} onUpdateProgress={onUpdateProgress} />;
+      const initialStep = activeTraining.agentProgress[loggedInAgentId]?.currentStep || 0;
+      return <TrainingRunner 
+                material={activeTraining} 
+                onExit={() => setActiveTraining(null)} 
+                onUpdateProgress={onUpdateProgress} 
+                initialStep={initialStep}
+             />;
   }
 
-  return <TrainingList materials={materials} onStart={setActiveTraining} />;
+  return <TrainingList materials={materials} onStart={setActiveTraining} loggedInAgentId={loggedInAgentId} />;
 };
 
 export default TrainingPage;

@@ -3,29 +3,35 @@ export enum Page {
   Training = 'Capacitação',
   Assessments = 'Avaliações',
   Norms = 'Normas Técnicas',
-  History = 'Histórico',
-  Admin = 'Gestão',
+  History = 'Meu Histórico',
   Ranking = 'Ranking',
-  Jogos = 'Jogos'
+  Jogos = 'Jogos',
+  Admin = 'Gestão',
 }
 
-// NOVO: Define a estrutura de uma etapa do treinamento
-export interface TrainingStep {
-type: 'content' | 'quiz';
-title: string;
-content: string; // Pode conter markdown ou texto simples
-imageUrl?: string;
-videoUrl?: string;
-question?: Question; // Usado se o tipo for 'quiz'
+export interface Agent {
+  id: string;
+  name: string;
+  email: string;
+  role: 'agente' | 'gestor';
+  password?: string; // Should be handled securely in a real app
 }
-// ATUALIZADO: A estrutura do TrainingMaterial foi modificada
-export interface TrainingMaterial {
-id: number;
-title: string;
-description: string;
-steps: TrainingStep[];
-completed: boolean;
-progress: number; // Percentual de 0 a 100
+
+export interface Question {
+  id: string;
+  text: string;
+  options: string[];
+  correctAnswerIndex: number;
+  imageUrl?: string;
+  videoUrl?: string;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  questions: Question[];
+  isVisible: boolean;
 }
 
 export interface NormDocument {
@@ -36,46 +42,46 @@ export interface NormDocument {
   url: string;
 }
 
-export interface Question {
-  id: string; // Unique ID for each question
-  text: string;
-  options: string[];
-  correctAnswerIndex: number;
+export interface TrainingStep {
+  type: 'content' | 'quiz';
+  title: string;
+  content: string;
   imageUrl?: string;
   videoUrl?: string;
+  question?: Question;
 }
 
-export interface Quiz {
-  id: string;
-  title:string;
+export interface TrainingProgress {
+    progress: number;
+    completed: boolean;
+    currentStep: number;
+}
+
+export interface TrainingMaterial {
+  id: number;
+  title: string;
   description: string;
-  questions: Question[];
-  isVisible: boolean;
+  steps: TrainingStep[];
+  // Tracks progress for each agent individually
+  agentProgress: { [agentId: string]: TrainingProgress };
+}
+
+
+export interface AssessmentResult {
+    id: string;
+    quizId: string;
+    quizTitle: string;
+    agentId: string;
+    agentName: string;
+    score: number;
+    totalQuestions: number;
+    percentage: number;
+    date: string; // ISO string
+    userAnswers: { [questionId: string]: number };
+    duration: number; // in seconds
 }
 
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
-}
-
-export interface Agent {
-  id: string;
-  name: string;
-  email: string;
-  role: 'agente' | 'gestor';
-  password?: string;
-}
-
-export interface AssessmentResult {
-  id: string;
-  quizId: string;
-  quizTitle: string;
-  score: number;
-  totalQuestions: number;
-  percentage: number;
-  date: string; // ISO date string
-  agentId: string;
-  agentName: string;
-  userAnswers: { [questionId: string]: number }; // questionId -> selectedOptionIndex
-  duration: number; // in seconds
 }

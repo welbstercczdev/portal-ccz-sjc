@@ -351,8 +351,7 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
             title: '',
             description: '',
             steps: [{ type: 'content', title: '', content: '' }],
-            completed: false,
-            progress: 0
+            agentProgress: {}
         }
     );
 
@@ -360,14 +359,12 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
         if (initialData) {
             setTraining(initialData);
         } else {
-            // Default new training structure
             setTraining({
-                id: 0, // Will be set in App.tsx
+                id: 0,
                 title: '',
                 description: '',
-                steps: [{ type: 'content', title: 'Introdução', content: 'Bem-vindo(a) à capacitação!' }],
-                completed: false,
-                progress: 0
+                steps: [{ type: 'content', title: 'Introdução', content: '' }],
+                agentProgress: {}
             });
         }
     }, [initialData]);

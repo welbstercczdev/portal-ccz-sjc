@@ -23,30 +23,41 @@ const App: React.FC = () => {
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentResult[]>(INITIAL_HISTORY_DATA);
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
 
-  // CRUD Handlers for Training (REMOVIDO onToggleCompletion, ADICIONADO onUpdateProgress)
+
+  // CRUD Handlers
   const handleSaveTraining = (training: TrainingMaterial) => {
     setTrainingData(prev => {
       const exists = prev.some(t => t.id === training.id);
       if (exists) {
         return prev.map(t => t.id === training.id ? training : t);
       }
-      return [...prev, { ...training, id: Date.now() }];
+      // For new trainings, ensure agentProgress object exists
+      const newTraining = { ...training, id: Date.now(), agentProgress: {} };
+      return [...prev, newTraining];
     });
   };
   const handleDeleteTraining = (id: number) => setTrainingData(prev => prev.filter(t => t.id !== id));
 
-  const handleUpdateTrainingProgress = (id: number, currentStep: number, totalSteps: number) => {
-      setTrainingData(prev => prev.map(t => {
-          if (t.id === id) {
-              const progress = Math.round((currentStep / totalSteps) * 100);
-              const completed = currentStep >= totalSteps;
-              return { ...t, progress, completed };
+  const handleUpdateTrainingProgress = (trainingId: number, currentStepIndex: number) => {
+    setTrainingData(prev => prev.map(t => {
+      if (t.id === trainingId) {
+        const totalSteps = t.steps.length;
+        const progress = Math.round(((currentStepIndex + 1) / totalSteps) * 100);
+        const completed = (currentStepIndex + 1) >= totalSteps;
+        
+        const newAgentProgress = {
+          ...t.agentProgress,
+          [LOGGED_IN_AGENT.id]: {
+            progress,
+            completed,
+            currentStep: currentStepIndex
           }
-          return t;
-      }));
+        };
+        return { ...t, agentProgress: newAgentProgress };
+      }
+      return t;
+    }));
   };
-  
-  // --- O restante dos handlers (Norm, Assessment, Agent) permanece o mesmo ---
 
   const handleSaveNorm = (norm: NormDocument) => {
     setNormsData(prev => {
@@ -112,7 +123,7 @@ const App: React.FC = () => {
       case Page.Home:
         return <HomePage setActivePage={handleSetPage} />;
       case Page.Training:
-        return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} />;
+        return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} loggedInAgentId={LOGGED_IN_AGENT.id} />;
       case Page.Assessments:
         return <AssessmentPage assessments={assessmentsData} onAddResult={handleAddAssessmentResult} />;
       case Page.Norms:

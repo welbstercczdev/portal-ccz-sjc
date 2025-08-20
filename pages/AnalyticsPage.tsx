@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Agent, AssessmentResult, Quiz, TrainingMaterial, Question } from '../types';
+import { Agent, AssessmentResult, Quiz, TrainingMaterial, Question, TrainingProgress } from '../types';
 
 interface AnalyticsPageProps {
     assessments: Quiz[];
@@ -88,6 +88,20 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
             completions: history.length,
         }
     }, [history]);
+    
+    const trainingStats = useMemo(() => {
+        return trainings.map(training => {
+            // CORREÇÃO APLICADA AQUI:
+            const completions = Object.values(training.agentProgress || {}).filter(progress => progress && (progress as TrainingProgress).completed).length;
+            const completionRate = agents.length > 0 ? (completions / agents.length) * 100 : 0;
+            return {
+                id: training.id,
+                title: training.title,
+                completions,
+                completionRate,
+            };
+        });
+    }, [trainings, agents]);
 
     const assessmentStats = useMemo(() => {
         return assessments.map(quiz => {
@@ -114,10 +128,42 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
 
     const OverviewDashboard = () => (
         <div className="space-y-8 animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Agentes Ativos" value={agents.length.toString()} />
+                <StatCard title="Módulos de Capacitação" value={trainings.length.toString()} />
                 <StatCard title="Avaliações Concluídas" value={overallStats.completions.toString()} />
-                <StatCard title="Média Geral" value={`${overallStats.avgScore.toFixed(1)}%`} subtext="Em todas as avaliações" />
+                <StatCard title="Média de Avaliações" value={`${overallStats.avgScore.toFixed(1)}%`} />
+            </div>
+
+            <div className="bg-surface rounded-lg shadow-card p-6">
+                <h3 className="text-xl font-bold mb-4">Progresso por Capacitação</h3>
+                 <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-border-color">
+                            <tr>
+                                <th className="p-3 font-semibold">Capacitação</th>
+                                <th className="p-3 font-semibold text-center">Conclusões</th>
+                                <th className="p-3 font-semibold text-center">Taxa de Conclusão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {trainingStats.map(stat => (
+                                <tr key={stat.id} className="border-b border-border-color last:border-b-0">
+                                    <td className="p-3 font-semibold text-text-primary">{stat.title}</td>
+                                    <td className="p-3 text-center">{stat.completions} de {agents.length}</td>
+                                    <td className="p-3 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <div className="w-24 bg-slate-200 rounded-full h-2.5">
+                                                <div className="bg-primary h-2.5 rounded-full" style={{width: `${stat.completionRate}%`}}></div>
+                                            </div>
+                                            <span className="font-semibold text-primary w-12 text-left">{stat.completionRate.toFixed(0)}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div className="bg-surface rounded-lg shadow-card p-6">
@@ -277,17 +323,14 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
         const agent = agentStats.find(a => a.id === agentId);
         const agentHistory = history.filter(h => h.agentId === agentId).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         if (!agent) return <p>Agente não encontrado.</p>;
-
-        const trainingProgress = trainings.length > 0 ? (trainings.filter(t => t.completed).length / trainings.length) * 100 : 0;
     
         return (
             <div className="space-y-6 animate-fade-in">
                 <BackButton onClick={() => setSelectedItem(null)} />
                 <h2 className="text-2xl font-bold">{agent.name} <span className="text-lg font-medium text-text-secondary">({agent.email})</span></h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <StatCard title="Avaliações Concluídas" value={agent.completions.toString()} />
-                    <StatCard title="Média Geral" value={`${agent.avgScore.toFixed(1)}%`} />
-                    <StatCard title="Progresso em Capacitação" value={`${trainingProgress.toFixed(0)}%`} />
+                    <StatCard title="Média Geral nas Avaliações" value={`${agent.avgScore.toFixed(1)}%`} />
                 </div>
                 
                 <div className="bg-surface rounded-lg shadow-card p-6">
@@ -321,19 +364,27 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
                 <div className="bg-surface rounded-lg shadow-card p-6">
                     <h3 className="text-xl font-bold mb-4">Status de Capacitação</h3>
                     <ul className="space-y-2">
-                        {trainings.map(t => (
-                            <li key={t.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
-                                <span className={`font-medium ${t.completed ? 'text-text-secondary line-through' : 'text-text-primary'}`}>{t.title}</span>
-                                {t.completed ? (
-                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                        Concluído
-                                    </span>
-                                ) : (
-                                     <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Pendente</span>
-                                )}
-                            </li>
-                        ))}
+                        {trainings.map(t => {
+                             const agentProgress = t.agentProgress[agentId];
+                             const isCompleted = agentProgress?.completed;
+                             const progress = agentProgress?.progress || 0;
+                             
+                             let statusLabel = "Não Iniciado";
+                             let statusStyle = "text-slate-700 bg-slate-100";
+                             if (isCompleted) {
+                                 statusLabel = "Concluído";
+                                 statusStyle = "text-green-700 bg-green-100";
+                             } else if (progress > 0) {
+                                 statusLabel = `Em Andamento (${progress}%)`;
+                                 statusStyle = "text-amber-700 bg-amber-100";
+                             }
+                            return (
+                                <li key={t.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
+                                    <span className="font-medium text-text-primary">{t.title}</span>
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusStyle}`}>{statusLabel}</span>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             </div>
@@ -343,7 +394,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     if (selectedResult) {
         const quiz = assessments.find(q => q.id === selectedResult.quizId);
         if (!quiz) {
-            // Handle case where quiz is not found, though this shouldn't happen with valid data
             return <p>Ocorreu um erro: a avaliação para este resultado não foi encontrada.</p>;
         }
         return <AgentResultDetails result={selectedResult} quiz={quiz} onBack={() => setSelectedResult(null)} />;
