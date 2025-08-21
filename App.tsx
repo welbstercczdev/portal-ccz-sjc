@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Page, TrainingMaterial, NormDocument, Quiz, AssessmentResult, Agent } from './types';
-import { INITIAL_TRAINING_DATA, INITIAL_NORMS_DATA, INITIAL_ASSESSMENTS_DATA, AGENTS, LOGGED_IN_AGENT, INITIAL_HISTORY_DATA } from './data';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
@@ -11,105 +10,192 @@ import AdminPage from './pages/AdminPage';
 import HistoryPage from './pages/HistoryPage';
 import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
+import LoginPage from './pages/LoginPage';
+
+// CORREÇÃO APLICADA AQUI: Importa TODAS as funções necessárias do apiService
+import {
+  getTrainings, getNorms, getAssessments, getAssessmentHistory, getAgents,
+  getLoggedInUser, login, logout,
+  saveTraining, deleteTraining, updateTrainingProgress,
+  saveNorm, deleteNorm,
+  saveAssessment, deleteAssessment, addAssessmentResult,
+  saveAgent, deleteAgent
+} from './services/apiService';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loggedInUser, setLoggedInUser] = useState<Agent | null>(null);
 
   // Data states
-  const [trainingData, setTrainingData] = useState<TrainingMaterial[]>(INITIAL_TRAINING_DATA);
-  const [normsData, setNormsData] = useState<NormDocument[]>(INITIAL_NORMS_DATA);
-  const [assessmentsData, setAssessmentsData] = useState<Quiz[]>(INITIAL_ASSESSMENTS_DATA);
-  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentResult[]>(INITIAL_HISTORY_DATA);
-  const [agents, setAgents] = useState<Agent[]>(AGENTS);
+  const [trainingData, setTrainingData] = useState<TrainingMaterial[]>([]);
+  const [normsData, setNormsData] = useState<NormDocument[]>([]);
+  const [assessmentsData, setAssessmentsData] = useState<Quiz[]>([]);
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentResult[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
 
-
-  // CRUD Handlers
-  const handleSaveTraining = (training: TrainingMaterial) => {
-    setTrainingData(prev => {
-      const exists = prev.some(t => t.id === training.id);
-      if (exists) {
-        return prev.map(t => t.id === training.id ? training : t);
-      }
-      // For new trainings, ensure agentProgress object exists
-      const newTraining = { ...training, id: Date.now(), agentProgress: {} };
-      return [...prev, newTraining];
-    });
-  };
-  const handleDeleteTraining = (id: number) => setTrainingData(prev => prev.filter(t => t.id !== id));
-
-  const handleUpdateTrainingProgress = (trainingId: number, currentStepIndex: number) => {
-    setTrainingData(prev => prev.map(t => {
-      if (t.id === trainingId) {
-        const totalSteps = t.steps.length;
-        const progress = Math.round(((currentStepIndex + 1) / totalSteps) * 100);
-        const completed = (currentStepIndex + 1) >= totalSteps;
-        
-        const newAgentProgress = {
-          ...t.agentProgress,
-          [LOGGED_IN_AGENT.id]: {
-            progress,
-            completed,
-            currentStep: currentStepIndex
-          }
-        };
-        return { ...t, agentProgress: newAgentProgress };
-      }
-      return t;
-    }));
-  };
-
-  const handleSaveNorm = (norm: NormDocument) => {
-    setNormsData(prev => {
-      const exists = prev.some(n => n.id === norm.id);
-      if (exists) {
-        return prev.map(n => n.id === norm.id ? norm : n);
-      }
-      return [...prev, { ...norm, id: Date.now() }];
-    });
-  };
-  const handleDeleteNorm = (id: number) => setNormsData(prev => prev.filter(n => n.id !== id));
-
-  const handleSaveAssessment = (quiz: Quiz) => {
-    setAssessmentsData(prev => {
-        const exists = prev.some(q => q.id === quiz.id);
-        if (exists) {
-            return prev.map(q => (q.id === quiz.id ? quiz : q));
-        }
-        return [...prev, { ...quiz, id: `quiz-${Date.now()}` }];
-    });
-  };
-  const handleDeleteAssessment = (id: string) => setAssessmentsData(prev => prev.filter(q => q.id !== id));
-  
-  const handleAddAssessmentResult = (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
-    const newResult: AssessmentResult = {
-        ...resultData,
-        id: `result-${Date.now()}`,
-        date: new Date().toISOString(),
-        agentId: LOGGED_IN_AGENT.id,
-        agentName: LOGGED_IN_AGENT.name,
-    };
-    setAssessmentHistory(prev => [newResult, ...prev]);
-  };
-
-  const handleSaveAgent = (agent: Agent) => {
-    setAgents(prev => {
-        const exists = prev.some(a => a.id === agent.id);
-        if (exists) {
-            return prev.map(a => a.id === agent.id ? agent : a);
-        }
-        return [...prev, { ...agent, id: `agent-${Date.now()}` }];
-    });
-  };
-
-  const handleDeleteAgent = (id: string) => {
-    if (id === LOGGED_IN_AGENT.id) {
-      alert("Você não pode excluir seu próprio usuário.");
-      return;
+  useEffect(() => {
+    const user = getLoggedInUser();
+    if (user) {
+      setLoggedInUser(user);
+    } else {
+      setIsLoading(false);
     }
-    setAgents(prev => prev.filter(a => a.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!loggedInUser) {
+        setTrainingData([]);
+        setNormsData([]);
+        setAssessmentsData([]);
+        setAssessmentHistory([]);
+        setAgents([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        const [
+          trainings,
+          norms,
+          assessments,
+          history,
+          agentsData
+        ] = await Promise.all([
+          getTrainings(),
+          getNorms(),
+          getAssessments(),
+          getAssessmentHistory(),
+          loggedInUser.role === 'gestor' ? getAgents() : Promise.resolve([loggedInUser])
+        ]);
+
+        setTrainingData(trainings);
+        setNormsData(norms);
+        setAssessmentsData(assessments);
+        setAssessmentHistory(history);
+        setAgents(agentsData);
+
+      } catch (error) {
+        console.error("Falha ao buscar dados da aplicação:", error);
+        handleLogout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, [loggedInUser]);
+
+  const handleLogout = () => {
+    logout();
+    setLoggedInUser(null);
+    setCurrentPage(Page.Home);
+    setIsAdminMode(false);
   };
 
+  // --- Handlers ---
+  const handleSaveTraining = async (training: TrainingMaterial) => {
+    try {
+      await saveTraining(training);
+      setTrainingData(await getTrainings());
+    } catch (error: any) {
+      console.error("Falha ao salvar capacitação:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleDeleteTraining = async (id: number) => {
+    try {
+      await deleteTraining(id);
+      setTrainingData(prev => prev.filter(t => t.id !== id));
+    } catch (error: any) {
+      console.error("Falha ao deletar capacitação:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleUpdateTrainingProgress = async (trainingId: number, currentStepIndex: number) => {
+    try {
+      await updateTrainingProgress(trainingId, currentStepIndex);
+      setTrainingData(await getTrainings()); 
+    } catch (error: any) {
+      console.error("Falha ao atualizar progresso:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleSaveNorm = async (norm: NormDocument) => {
+    try {
+      await saveNorm(norm);
+      setNormsData(await getNorms());
+    } catch (error: any) {
+      console.error("Falha ao salvar norma:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleDeleteNorm = async (id: number) => {
+    try {
+      await deleteNorm(id);
+      setNormsData(prev => prev.filter(n => n.id !== id));
+    } catch (error: any) {
+      console.error("Falha ao deletar norma:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleSaveAssessment = async (quiz: Quiz) => {
+    try {
+      await saveAssessment(quiz);
+      setAssessmentsData(await getAssessments());
+    } catch (error: any) {
+      console.error("Falha ao salvar avaliação:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleDeleteAssessment = async (id: string) => {
+    try {
+      await deleteAssessment(id);
+      setAssessmentsData(prev => prev.filter(q => q.id !== id));
+    } catch (error: any) {
+      console.error("Falha ao deletar avaliação:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
+    try {
+      await addAssessmentResult(resultData);
+      setAssessmentHistory(await getAssessmentHistory());
+    } catch (error: any) {
+      console.error("Falha ao adicionar resultado:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleSaveAgent = async (agent: Agent) => {
+    try {
+      await saveAgent(agent);
+      setAgents(await getAgents());
+    } catch (error: any) {
+      console.error("Falha ao salvar agente:", error);
+      alert("Erro: " + error.message);
+    }
+  };
+
+  const handleDeleteAgent = async (id: string) => {
+    try {
+      await deleteAgent(id);
+      setAgents(prev => prev.filter(a => a.id !== id));
+    } catch (error: any) {
+      console.error("Falha ao deletar agente:", error);
+      alert("Erro: " + error.message);
+    }
+  };
 
   const handleSetPage = (page: Page) => {
     if (page === Page.Admin && !isAdminMode) {
@@ -118,20 +204,28 @@ const App: React.FC = () => {
     setCurrentPage(page);
   }
 
+  if (isLoading) {
+    return <div className="w-screen h-screen flex items-center justify-center bg-background text-text-primary">Carregando Portal...</div>;
+  }
+
+  if (!loggedInUser) {
+    return <LoginPage onLoginSuccess={setLoggedInUser} />;
+  }
+
   const renderPage = () => {
     switch (currentPage) {
       case Page.Home:
         return <HomePage setActivePage={handleSetPage} />;
       case Page.Training:
-        return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} loggedInAgentId={LOGGED_IN_AGENT.id} />;
+        return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} loggedInAgentId={loggedInUser.id} />;
       case Page.Assessments:
         return <AssessmentPage assessments={assessmentsData} onAddResult={handleAddAssessmentResult} />;
       case Page.Norms:
         return <NormsPage norms={normsData} />;
-       case Page.History:
-        return <HistoryPage history={assessmentHistory.filter(h => h.agentId === LOGGED_IN_AGENT.id)} />;
+      case Page.History:
+        return <HistoryPage history={assessmentHistory.filter(h => h.agentId === loggedInUser.id)} />;
       case Page.Ranking:
-        return <RankingPage agents={agents} history={assessmentHistory} assessments={assessmentsData} loggedInAgentId={LOGGED_IN_AGENT.id} />;
+        return <RankingPage agents={agents} history={assessmentHistory} assessments={assessmentsData} loggedInAgentId={loggedInUser.id} />;
       case Page.Jogos:
         return <GamesPage />;
       case Page.Admin:
@@ -150,7 +244,7 @@ const App: React.FC = () => {
                 onDeleteAssessment={handleDeleteAssessment}
                 onSaveAgent={handleSaveAgent}
                 onDeleteAgent={handleDeleteAgent}
-                loggedInAgentId={LOGGED_IN_AGENT.id}
+                loggedInAgentId={loggedInUser.id}
             />
         );
       default:
@@ -165,7 +259,8 @@ const App: React.FC = () => {
         setCurrentPage={handleSetPage} 
         isAdminMode={isAdminMode}
         setIsAdminMode={setIsAdminMode}
-        agent={LOGGED_IN_AGENT}
+        agent={loggedInUser}
+        onLogout={handleLogout}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="p-6 md:p-8">
