@@ -97,106 +97,105 @@ const App: React.FC = () => {
   };
 
   // --- Handlers ---
-  const handleSaveTraining = async (training: TrainingMaterial) => {
-    try {
-      await saveTraining(training);
-      setTrainingData(await getTrainings());
-    } catch (error: any) {
-      console.error("Falha ao salvar capacitação:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleSaveTraining = async (training: TrainingMaterial) => {
+  try {
+    await saveTraining(training);
+    setTrainingData(await getTrainings()); // Atualiza os dados após salvar
+  } catch (error: any) {
+    console.error("Falha ao salvar capacitação:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleDeleteTraining = async (id: number) => {
-    try {
-      await deleteTraining(id);
-      setTrainingData(prev => prev.filter(t => t.id !== id));
-    } catch (error: any) {
-      console.error("Falha ao deletar capacitação:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleDeleteTraining = async (id: number) => {
+  try {
+    await deleteTraining(id);
+    setTrainingData(prev => prev.filter(t => t.id !== id));
+  } catch (error: any) {
+    console.error("Falha ao deletar capacitação:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleUpdateTrainingProgress = async (trainingId: number, currentStepIndex: number) => {
-    try {
-      await updateTrainingProgress(trainingId, currentStepIndex);
-      setTrainingData(await getTrainings()); 
-    } catch (error: any) {
-      console.error("Falha ao atualizar progresso:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleUpdateTrainingProgress = async (trainingId: number, currentStepIndex: number) => {
+  try {
+    await updateTrainingProgress(trainingId, currentStepIndex);
+    setTrainingData(await getTrainings()); 
+  } catch (error: any) {
+    console.error("Falha ao atualizar progresso:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleSaveNorm = async (norm: NormDocument) => {
-    try {
-      await saveNorm(norm);
-      setNormsData(await getNorms());
-    } catch (error: any) {
-      console.error("Falha ao salvar norma:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleSaveNorm = async (norm: NormDocument) => {
+  try {
+    await saveNorm(norm);
+    setNormsData(await getNorms());
+  } catch (error: any) {
+    console.error("Falha ao salvar norma:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleDeleteNorm = async (id: number) => {
-    try {
-      await deleteNorm(id);
-      setNormsData(prev => prev.filter(n => n.id !== id));
-    } catch (error: any) {
-      console.error("Falha ao deletar norma:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleDeleteNorm = async (id: number) => {
+  try {
+    await deleteNorm(id);
+    setNormsData(prev => prev.filter(n => n.id !== id));
+  } catch (error: any) {
+    console.error("Falha ao deletar norma:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleSaveAssessment = async (quiz: Quiz) => {
-    try {
-      await saveAssessment(quiz);
-      setAssessmentsData(await getAssessments());
-    } catch (error: any) {
-      console.error("Falha ao salvar avaliação:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleSaveAssessment = async (quiz: Quiz) => {
+  try {
+    await saveAssessment(quiz);
+    setAssessmentsData(await getAssessments());
+  } catch (error: any) {
+    console.error("Falha ao salvar avaliação:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleDeleteAssessment = async (id: string) => {
-    try {
-      await deleteAssessment(id);
-      setAssessmentsData(prev => prev.filter(q => q.id !== id));
-    } catch (error: any) {
-      console.error("Falha ao deletar avaliação:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleDeleteAssessment = async (id: string) => {
+  try {
+    await deleteAssessment(id);
+    setAssessmentsData(prev => prev.filter(q => q.id !== id));
+  } catch (error: any) {
+    console.error("Falha ao deletar avaliação:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
-    try {
-      await addAssessmentResult(resultData);
-      setAssessmentHistory(await getAssessmentHistory());
-    } catch (error: any) {
-      console.error("Falha ao adicionar resultado:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => {
+  try {
+    await addAssessmentResult(resultData);
+    setAssessmentHistory(await getAssessmentHistory());
+  } catch (error: any) {
+    console.error("Falha ao adicionar resultado:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleSaveAgent = async (agent: Agent) => {
-    try {
-      await saveAgent(agent);
-      setAgents(await getAgents());
-    } catch (error: any) {
-      console.error("Falha ao salvar agente:", error);
-      alert("Erro: " + error.message);
-    }
-  };
+const handleSaveAgent = async (agent: Agent) => {
+  try {
+    await saveAgent(agent);
+    setAgents(await getAgents());
+  } catch (error: any) {
+    console.error("Falha ao salvar agente:", error);
+    alert("Erro: " + error.message);
+  }
+};
 
-  const handleDeleteAgent = async (id: string) => {
-    try {
-      await deleteAgent(id);
-      setAgents(prev => prev.filter(a => a.id !== id));
-    } catch (error: any) {
-      console.error("Falha ao deletar agente:", error);
-      alert("Erro: " + error.message);
-    }
-  };
-
+const handleDeleteAgent = async (id: string) => {
+  try {
+    await deleteAgent(id);
+    setAgents(prev => prev.filter(a => a.id !== id));
+  } catch (error: any) {
+    console.error("Falha ao deletar agente:", error);
+    alert("Erro: " + error.message);
+  }
+};
   const handleSetPage = (page: Page) => {
     if (page === Page.Admin && !isAdminMode) {
       return;
