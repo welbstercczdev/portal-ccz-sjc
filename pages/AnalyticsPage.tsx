@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Agent, AssessmentResult, Quiz, TrainingMaterial, Question, TrainingProgress } from '../types';
+import ExportButton from '../components/ExportButton';
 
 interface AnalyticsPageProps {
     assessments: Quiz[];
@@ -91,7 +92,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     
     const trainingStats = useMemo(() => {
         return trainings.map(training => {
-            // CORREÇÃO APLICADA AQUI:
             const completions = Object.values(training.agentProgress || {}).filter(progress => progress && (progress as TrainingProgress).completed).length;
             const completionRate = agents.length > 0 ? (completions / agents.length) * 100 : 0;
             return {
@@ -136,8 +136,19 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
             </div>
 
             <div className="bg-surface rounded-lg shadow-card p-6">
-                <h3 className="text-xl font-bold mb-4">Progresso por Capacitação</h3>
-                 <div className="overflow-x-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold">Progresso por Capacitação</h3>
+                    <ExportButton 
+                        data={trainingStats.map(s => ({
+                            'Capacitacao': s.title,
+                            'Conclusoes': s.completions,
+                            'Total_Agentes': agents.length,
+                            'Taxa_Conclusao_%': s.completionRate.toFixed(1),
+                        }))} 
+                        filename="progresso_capacitacoes" 
+                    />
+                </div>
+                <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-border-color">
                             <tr>
@@ -167,7 +178,18 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
             </div>
 
             <div className="bg-surface rounded-lg shadow-card p-6">
-                <h3 className="text-xl font-bold mb-4">Desempenho por Avaliação</h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold">Desempenho por Avaliação</h3>
+                     <ExportButton 
+                        data={assessmentStats.map(s => ({
+                            'Avaliacao': s.title,
+                            'Conclusoes': s.completions,
+                            'Media_Acertos_%': s.avgScore.toFixed(1),
+                            'Taxa_Aprovacao_%': s.passRate.toFixed(1),
+                        }))} 
+                        filename="desempenho_avaliacoes" 
+                    />
+                </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-border-color">
@@ -193,7 +215,18 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
             </div>
 
             <div className="bg-surface rounded-lg shadow-card p-6">
-                <h3 className="text-xl font-bold mb-4">Desempenho por Agente</h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold">Desempenho por Agente</h3>
+                     <ExportButton 
+                        data={agentStats.map(s => ({
+                            'Agente': s.name,
+                            'Email': s.email,
+                            'Avaliacoes_Concluidas': s.completions,
+                            'Media_Geral_%': s.avgScore.toFixed(1),
+                        }))} 
+                        filename="desempenho_agentes" 
+                    />
+                </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-border-color">
@@ -221,9 +254,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
     const QuestionAnalysis: React.FC<{ question: Question, results: AssessmentResult[] }> = ({ question, results }) => {
         const questionStats = useMemo(() => {
             const totalAttempts = results.length;
-            if (totalAttempts === 0) {
-                return { correctPercentage: 0, optionPercentages: question.options.map(() => 0) };
-            }
+            if (totalAttempts === 0) return { correctPercentage: 0, optionPercentages: question.options.map(() => 0) };
     
             let correctCount = 0;
             const answerCounts = Array(question.options.length).fill(0);
@@ -231,12 +262,8 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
             results.forEach(result => {
                 const answerIndex = result.userAnswers[question.id];
                 if (answerIndex !== undefined && answerIndex !== null) {
-                    if (answerIndex === question.correctAnswerIndex) {
-                        correctCount++;
-                    }
-                    if (answerCounts[answerIndex] !== undefined) {
-                        answerCounts[answerIndex]++;
-                    }
+                    if (answerIndex === question.correctAnswerIndex) correctCount++;
+                    if (answerCounts[answerIndex] !== undefined) answerCounts[answerIndex]++;
                 }
             });
     
@@ -276,7 +303,19 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
         return (
             <div className="space-y-6 animate-fade-in">
                  <BackButton onClick={() => setSelectedItem(null)} />
-                 <h2 className="text-2xl font-bold">{quiz.title}</h2>
+                 <div className="flex justify-between items-start">
+                    <h2 className="text-2xl font-bold">{quiz.title}</h2>
+                    <ExportButton 
+                        data={results.map(r => ({
+                            'Agente': r.agentName,
+                            'Data': new Date(r.date).toLocaleDateString('pt-BR'),
+                            'Acertos': r.score,
+                            'Total_Questoes': r.totalQuestions,
+                            'Pontuacao_%': r.percentage.toFixed(1),
+                        }))}
+                        filename={`relatorio_${quiz.title.replace(/ /g, '_')}`}
+                    />
+                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <StatCard title="Conclusões" value={stats.completions.toString()} />
                     <StatCard title="Média de Acertos" value={`${stats.avgScore.toFixed(1)}%`} />
@@ -327,7 +366,19 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ assessments, agents, hist
         return (
             <div className="space-y-6 animate-fade-in">
                 <BackButton onClick={() => setSelectedItem(null)} />
-                <h2 className="text-2xl font-bold">{agent.name} <span className="text-lg font-medium text-text-secondary">({agent.email})</span></h2>
+                <div className="flex justify-between items-start">
+                    <h2 className="text-2xl font-bold">{agent.name} <span className="text-lg font-medium text-text-secondary">({agent.email})</span></h2>
+                    <ExportButton
+                        data={agentHistory.map(r => ({
+                            'Avaliacao': r.quizTitle,
+                            'Data': new Date(r.date).toLocaleDateString('pt-BR'),
+                            'Acertos': r.score,
+                            'Total_Questoes': r.totalQuestions,
+                            'Pontuacao_%': r.percentage.toFixed(1),
+                        }))}
+                        filename={`historico_${agent.name.replace(/ /g, '_')}`}
+                    />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <StatCard title="Avaliações Concluídas" value={agent.completions.toString()} />
                     <StatCard title="Média Geral nas Avaliações" value={`${agent.avgScore.toFixed(1)}%`} />
