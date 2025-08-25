@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrainingMaterial, NormDocument, Quiz, Question, Agent, AssessmentResult, TrainingStep } from '../types';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import AnalyticsPage from './AnalyticsPage';
 
 type View = 'dashboard' | 'trainings' | 'norms' | 'assessments' | 'analytics' | 'users';
@@ -35,10 +36,15 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [view, setView] = useState<View>('dashboard');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any | null>(null);
-
-    // States for password reset modal
     const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
     const [resettingAgent, setResettingAgent] = useState<Agent | null>(null);
+
+    const [confirmation, setConfirmation] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    } | null>(null);
 
     const openModal = (item: any | null = null) => {
         setEditingItem(item);
@@ -65,16 +71,24 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
         closeResetPasswordModal();
     };
 
-    const handleDelete = (type: View, id: number | string) => {
-        if (window.confirm('Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.')) {
-            switch(type) {
-                case 'trainings': props.onDeleteTraining(id as number); break;
-                case 'norms': props.onDeleteNorm(id as number); break;
-                case 'assessments': props.onDeleteAssessment(id as string); break;
-                case 'users': props.onDeleteAgent(id as string); break;
-            }
+    const handleDelete = (type: View, id: number | string, name: string) => {
+        setConfirmation({
+            isOpen: true,
+            title: `Excluir "${name}"`,
+            message: 'Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.',
+            onConfirm: () => confirmDelete(type, id)
+        });
+    };
+
+    const confirmDelete = (type: View, id: number | string) => {
+        switch(type) {
+            case 'trainings': props.onDeleteTraining(id as number); break;
+            case 'norms': props.onDeleteNorm(id as number); break;
+            case 'assessments': props.onDeleteAssessment(id as string); break;
+            case 'users': props.onDeleteAgent(id as string); break;
         }
-    }
+        setConfirmation(null);
+    };
 
     const handleToggleVisibility = (quiz: Quiz) => {
         props.onSaveAssessment({ ...quiz, isVisible: !quiz.isVisible });
@@ -94,18 +108,18 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                 <thead className="bg-slate-50 border-b border-border-color">
                                     <tr>
                                         <th className="p-3 font-semibold">Título</th>
-                                        <th className="p-3 font-semibold">Etapas</th>
-                                        <th className="p-3 font-semibold">Ações</th>
+                                        <th className="p-3 font-semibold text-center">Etapas</th>
+                                        <th className="p-3 font-semibold text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {props.trainings.map(item => (
                                         <tr key={item.id} className="border-b border-border-color last:border-b-0">
-                                            <td className="p-3">{item.title}</td>
-                                            <td className="p-3">{item.steps.length}</td>
-                                            <td className="p-3 flex gap-2">
+                                            <td className="p-3 font-medium">{item.title}</td>
+                                            <td className="p-3 text-center">{item.steps.length}</td>
+                                            <td className="p-3 flex gap-2 justify-end">
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
-                                                <button onClick={() => handleDelete('trainings', item.id)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
+                                                <button onClick={() => handleDelete('trainings', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
                                         </tr>
                                     ))}
@@ -127,17 +141,17 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                     <tr>
                                         <th className="p-3 font-semibold">Código</th>
                                         <th className="p-3 font-semibold">Título</th>
-                                        <th className="p-3 font-semibold">Ações</th>
+                                        <th className="p-3 font-semibold text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {props.norms.map(item => (
                                         <tr key={item.id} className="border-b border-border-color last:border-b-0">
-                                            <td className="p-3">{item.code}</td>
-                                            <td className="p-3">{item.title}</td>
-                                            <td className="p-3 flex gap-2">
+                                            <td className="p-3 font-mono">{item.code}</td>
+                                            <td className="p-3 font-medium">{item.title}</td>
+                                            <td className="p-3 flex gap-2 justify-end">
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
-                                                <button onClick={() => handleDelete('norms', item.id)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
+                                                <button onClick={() => handleDelete('norms', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
                                         </tr>
                                     ))}
@@ -158,27 +172,27 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                 <thead className="bg-slate-50 border-b border-border-color">
                                     <tr>
                                         <th className="p-3 font-semibold">Título</th>
-                                        <th className="p-3 font-semibold">Nº de Questões</th>
-                                        <th className="p-3 font-semibold">Visibilidade</th>
-                                        <th className="p-3 font-semibold">Ações</th>
+                                        <th className="p-3 font-semibold text-center">Nº de Questões</th>
+                                        <th className="p-3 font-semibold text-center">Visibilidade</th>
+                                        <th className="p-3 font-semibold text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {props.assessments.map(item => (
                                         <tr key={item.id} className="border-b border-border-color last:border-b-0">
-                                            <td className="p-3">{item.title}</td>
-                                            <td className="p-3">{item.questions.length}</td>
-                                            <td className="p-3">
+                                            <td className="p-3 font-medium">{item.title}</td>
+                                            <td className="p-3 text-center">{item.questions.length}</td>
+                                            <td className="p-3 text-center">
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.isVisible ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
                                                     {item.isVisible ? 'Visível' : 'Oculto'}
                                                 </span>
                                             </td>
-                                            <td className="p-3 flex gap-2">
+                                            <td className="p-3 flex gap-2 justify-end">
                                                 <button onClick={() => handleToggleVisibility(item)} className="text-gray-600 hover:text-gray-800" title={item.isVisible ? "Ocultar" : "Tornar visível"}>
                                                     {item.isVisible ? <EyeIcon/> : <EyeOffIcon/>}
                                                 </button>
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
-                                                <button onClick={() => handleDelete('assessments', item.id)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
+                                                <button onClick={() => handleDelete('assessments', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
                                         </tr>
                                     ))}
@@ -201,19 +215,19 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                         <th className="p-3 font-semibold">Nome</th>
                                         <th className="p-3 font-semibold">Email</th>
                                         <th className="p-3 font-semibold">Perfil</th>
-                                        <th className="p-3 font-semibold">Ações</th>
+                                        <th className="p-3 font-semibold text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {props.agents.map(agent => (
                                         <tr key={agent.id} className="border-b border-border-color last:border-b-0">
-                                            <td className="p-3">{agent.name}</td>
+                                            <td className="p-3 font-medium">{agent.name}</td>
                                             <td className="p-3">{agent.email}</td>
                                             <td className="p-3 capitalize">{agent.role}</td>
-                                            <td className="p-3 flex gap-3">
+                                            <td className="p-3 flex gap-3 justify-end">
                                                 <button onClick={() => openModal(agent)} className="text-blue-600 hover:text-blue-800" title="Editar Usuário"><EditIcon/></button>
                                                 <button onClick={() => openResetPasswordModal(agent)} className="text-amber-600 hover:text-amber-800" title="Resetar Senha"><ResetPasswordIcon/></button>
-                                                <button onClick={() => handleDelete('users', agent.id)} className="text-red-600 hover:text-red-800" title="Excluir Usuário" disabled={agent.id === props.loggedInAgentId}><DeleteIcon/></button>
+                                                <button onClick={() => handleDelete('users', agent.id, agent.name)} className="text-red-600 hover:text-red-800" title="Excluir Usuário" disabled={agent.id === props.loggedInAgentId}><DeleteIcon/></button>
                                             </td>
                                         </tr>
                                     ))}
@@ -318,6 +332,13 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                     />
                 </Modal>
             )}
+            <ConfirmationModal
+                isOpen={!!confirmation?.isOpen}
+                title={confirmation?.title || ''}
+                message={confirmation?.message || ''}
+                onConfirm={() => confirmation?.onConfirm()}
+                onCancel={() => setConfirmation(null)}
+            />
         </div>
     );
 };

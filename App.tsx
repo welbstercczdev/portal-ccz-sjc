@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast'; 
 import { Page, TrainingMaterial, NormDocument, Quiz, AssessmentResult, Agent } from './types';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -97,13 +98,15 @@ const App: React.FC = () => {
   };
 
   // --- Handlers ---
+// --- Handlers ---
 const handleSaveTraining = async (training: TrainingMaterial) => {
   try {
     await saveTraining(training);
-    setTrainingData(await getTrainings()); // Atualiza os dados após salvar
+    setTrainingData(await getTrainings());
+    toast.success('Capacitação salva com sucesso!');
   } catch (error: any) {
     console.error("Falha ao salvar capacitação:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao salvar a capacitação.');
   }
 };
 
@@ -111,9 +114,10 @@ const handleDeleteTraining = async (id: number) => {
   try {
     await deleteTraining(id);
     setTrainingData(prev => prev.filter(t => t.id !== id));
+    toast.success('Capacitação excluída com sucesso!');
   } catch (error: any) {
     console.error("Falha ao deletar capacitação:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao excluir a capacitação.');
   }
 };
 
@@ -121,9 +125,10 @@ const handleUpdateTrainingProgress = async (trainingId: number, currentStepIndex
   try {
     await updateTrainingProgress(trainingId, currentStepIndex);
     setTrainingData(await getTrainings()); 
+    // Não mostramos toast aqui para não poluir a tela durante o treinamento
   } catch (error: any) {
     console.error("Falha ao atualizar progresso:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao salvar seu progresso.');
   }
 };
 
@@ -131,9 +136,10 @@ const handleSaveNorm = async (norm: NormDocument) => {
   try {
     await saveNorm(norm);
     setNormsData(await getNorms());
+    toast.success('Norma técnica salva com sucesso!');
   } catch (error: any) {
     console.error("Falha ao salvar norma:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao salvar a norma.');
   }
 };
 
@@ -141,9 +147,10 @@ const handleDeleteNorm = async (id: number) => {
   try {
     await deleteNorm(id);
     setNormsData(prev => prev.filter(n => n.id !== id));
+    toast.success('Norma técnica excluída com sucesso!');
   } catch (error: any) {
     console.error("Falha ao deletar norma:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao excluir a norma.');
   }
 };
 
@@ -151,9 +158,10 @@ const handleSaveAssessment = async (quiz: Quiz) => {
   try {
     await saveAssessment(quiz);
     setAssessmentsData(await getAssessments());
+    toast.success('Avaliação salva com sucesso!');
   } catch (error: any) {
     console.error("Falha ao salvar avaliação:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao salvar a avaliação.');
   }
 };
 
@@ -161,9 +169,10 @@ const handleDeleteAssessment = async (id: string) => {
   try {
     await deleteAssessment(id);
     setAssessmentsData(prev => prev.filter(q => q.id !== id));
+    toast.success('Avaliação excluída com sucesso!');
   } catch (error: any) {
     console.error("Falha ao deletar avaliação:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao excluir a avaliação.');
   }
 };
 
@@ -171,9 +180,10 @@ const handleAddAssessmentResult = async (resultData: Omit<AssessmentResult, 'id'
   try {
     await addAssessmentResult(resultData);
     setAssessmentHistory(await getAssessmentHistory());
+    toast.success('Resultado da avaliação enviado com sucesso!');
   } catch (error: any) {
     console.error("Falha ao adicionar resultado:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao enviar seu resultado.');
   }
 };
 
@@ -181,9 +191,10 @@ const handleSaveAgent = async (agent: Agent) => {
   try {
     await saveAgent(agent);
     setAgents(await getAgents());
+    toast.success('Usuário salvo com sucesso!');
   } catch (error: any) {
     console.error("Falha ao salvar agente:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao salvar o usuário.');
   }
 };
 
@@ -191,9 +202,10 @@ const handleDeleteAgent = async (id: string) => {
   try {
     await deleteAgent(id);
     setAgents(prev => prev.filter(a => a.id !== id));
+    toast.success('Usuário excluído com sucesso!');
   } catch (error: any) {
     console.error("Falha ao deletar agente:", error);
-    alert("Erro: " + error.message);
+    toast.error(error.message || 'Falha ao excluir o usuário.');
   }
 };
   const handleSetPage = (page: Page) => {
@@ -253,6 +265,7 @@ const handleDeleteAgent = async (id: string) => {
 
   return (
     <div className="flex h-screen font-sans bg-background text-text-primary">
+     <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <Sidebar 
         currentPage={currentPage} 
         setCurrentPage={handleSetPage} 
