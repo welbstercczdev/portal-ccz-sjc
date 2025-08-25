@@ -81,3 +81,6 @@ export const deleteAssessment = (id: string) => request('deleteAssessment', { id
 export const addAssessmentResult = (resultData: any) => request('addAssessmentResult', resultData);
 export const saveAgent = (agentData: any) => request('saveAgent', agentData);
 export const deleteAgent = (id: string) => request('deleteAgent', { id });
+export const changePassword = (currentPassword: string, newPassword: string) => {
+    return request('changePassword', { currentPassword, newPassword });
+};

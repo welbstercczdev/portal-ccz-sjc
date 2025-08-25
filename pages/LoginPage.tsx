@@ -74,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
           </div>
-// ...
+
         </form>
       </div>
     </div>

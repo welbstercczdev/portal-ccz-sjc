@@ -8,7 +8,8 @@ interface SidebarProps {
   isAdminMode: boolean;
   setIsAdminMode: (isAdmin: boolean) => void;
   agent: Agent;
-  onLogout: () => void; // Nova propriedade
+  onLogout: () => void;
+  onChangePassword: () => void; // <-- ADICIONADO: Propriedade para abrir o modal
 }
 
 const Logo: React.FC = () => (
@@ -28,8 +29,14 @@ const LogoutIcon: React.FC = () => (
     </svg>
 );
 
+const KeyIcon: React.FC = () => ( // <-- ADICIONADO: Ícone para a nova ação
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 14l-1 1-1 1H6v-2l1-1 1-1 1.257-1.257A6 6 0 1121 9z" />
+    </svg>
+);
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminMode, setIsAdminMode, agent, onLogout }) => {
+
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminMode, setIsAdminMode, agent, onLogout, onChangePassword }) => {
   const navItems = Object.values(Page).filter(page => isAdminMode || page !== Page.Admin);
   const agentInitials = agent.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
@@ -67,8 +74,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isAdminM
               </button>
             </li>
           ))}
-            {/* Botão de Logout */}
+            {/* Seção de Ações do Usuário */}
             <li className="pt-4 mt-4 border-t border-white/20">
+              <button
+                onClick={onChangePassword}
+                className="flex items-center p-3 rounded-lg w-full text-left transition-all duration-200 group hover:bg-white/10 hover:text-white"
+              >
+                <KeyIcon/>
+                <span className="hidden lg:inline lg:ml-4 font-semibold">Alterar Senha</span>
+              </button>
+            </li>
+            <li>
               <button
                 onClick={onLogout}
                 className="flex items-center p-3 rounded-lg w-full text-left transition-all duration-200 group hover:bg-white/10 hover:text-white"

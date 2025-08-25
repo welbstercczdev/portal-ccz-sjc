@@ -13,15 +13,16 @@ import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
 import LoginPage from './pages/LoginPage';
 import LoadingScreen from './components/LoadingScreen'; 
+import ChangePasswordModal from './components/ChangePasswordModal'; // <-- 1. Importar
 
-// CORREÇÃO APLICADA AQUI: Importa TODAS as funções necessárias do apiService
 import {
   getTrainings, getNorms, getAssessments, getAssessmentHistory, getAgents,
   getLoggedInUser, login, logout,
   saveTraining, deleteTraining, updateTrainingProgress,
   saveNorm, deleteNorm,
   saveAssessment, deleteAssessment, addAssessmentResult,
-  saveAgent, deleteAgent
+  saveAgent, deleteAgent,
+  changePassword // <-- 1. Importar
 } from './services/apiService';
 
 const App: React.FC = () => {
@@ -29,6 +30,7 @@ const App: React.FC = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loggedInUser, setLoggedInUser] = useState<Agent | null>(null);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   // Data states
   const [trainingData, setTrainingData] = useState<TrainingMaterial[]>([]);
@@ -99,7 +101,17 @@ const App: React.FC = () => {
   };
 
   // --- Handlers ---
-// --- Handlers ---
+  const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      await changePassword(currentPassword, newPassword);
+      toast.success('Senha alterada com sucesso!');
+    } catch (error: any) {
+      console.error("Falha ao alterar senha:", error);
+      toast.error(error.message || 'Não foi possível alterar a senha.');
+      throw error; // Lança o erro para o modal poder tratá-lo
+    }
+  };
+
 const handleSaveTraining = async (training: TrainingMaterial) => {
   try {
     await saveTraining(training);
@@ -274,6 +286,7 @@ const handleDeleteAgent = async (id: string) => {
         setIsAdminMode={setIsAdminMode}
         agent={loggedInUser}
         onLogout={handleLogout}
+        onChangePassword={() => setIsChangePasswordOpen(true)}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="p-6 md:p-8">
@@ -285,6 +298,11 @@ const handleDeleteAgent = async (id: string) => {
           </div>
         </main>
       </div>
+       <ChangePasswordModal 
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        onSave={handleChangePassword}
+      />
     </div>
   );
 };
