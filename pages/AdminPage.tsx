@@ -211,7 +211,6 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                                     {item.isVisible ? <EyeIcon/> : <EyeOffIcon/>}
                                                 </button>
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
-                                                {/* CORREÇÃO APLICADA AQUI */}
                                                 <button onClick={() => handleDelete('assessments', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
                                         </tr>
@@ -326,7 +325,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                 break;
         }
 
-        return <Modal isOpen={isModalOpen} onClose={closeModal} title={title}>{form}</Modal>;
+        return <Modal isOpen={isModalOpen} onClose={closeModal} title={title} closeOnClickOutside={false}>{form}</Modal>;
     }
 
     return (
@@ -344,6 +343,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                     isOpen={isResetPasswordModalOpen} 
                     onClose={closeResetPasswordModal} 
                     title={`Resetar Senha de ${resettingAgent.name}`}
+                    closeOnClickOutside={false}
                 >
                     <ResetPasswordForm 
                         agent={resettingAgent}
