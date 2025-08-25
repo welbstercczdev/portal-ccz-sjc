@@ -109,6 +109,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                     <tr>
                                         <th className="p-3 font-semibold">Título</th>
                                         <th className="p-3 font-semibold text-center">Etapas</th>
+                                        <th className="p-3 font-semibold text-center">Visibilidade</th>
                                         <th className="p-3 font-semibold text-right">Ações</th>
                                     </tr>
                                 </thead>
@@ -117,7 +118,19 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                         <tr key={item.id} className="border-b border-border-color last:border-b-0">
                                             <td className="p-3 font-medium">{item.title}</td>
                                             <td className="p-3 text-center">{item.steps.length}</td>
+                                            <td className="p-3 text-center">
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.isVisible ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
+                                                    {item.isVisible ? 'Visível' : 'Oculto'}
+                                                </span>
+                                            </td>
                                             <td className="p-3 flex gap-2 justify-end">
+                                                <button 
+                                                    onClick={() => props.onSaveTraining({ ...item, isVisible: !item.isVisible })} 
+                                                    className="text-gray-600 hover:text-gray-800" 
+                                                    title={item.isVisible ? "Ocultar" : "Tornar visível"}
+                                                >
+                                                    {item.isVisible ? <EyeIcon/> : <EyeOffIcon/>}
+                                                </button>
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
                                                 <button onClick={() => handleDelete('trainings', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
@@ -366,33 +379,44 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 
 
 const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (data: TrainingMaterial) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
-    const [training, setTraining] = useState<TrainingMaterial>(
-        initialData || {
-            id: 0,
-            title: '',
-            description: '',
-            steps: [{ type: 'content', title: '', content: '' }],
-            agentProgress: {}
-        }
-    );
+    const [training, setTraining] = useState<Omit<TrainingMaterial, 'agentProgress'>>({
+        id: 0,
+        title: '',
+        description: '',
+        steps: [{ type: 'content', title: '', content: '' }],
+        isVisible: true,
+    });
 
     useEffect(() => {
         if (initialData) {
-            setTraining(initialData);
+            setTraining({
+                id: initialData.id,
+                title: initialData.title,
+                description: initialData.description,
+                steps: initialData.steps,
+                isVisible: initialData.isVisible ?? true, // Garante que o valor não seja undefined
+            });
         } else {
+            // Valor padrão para novas capacitações
             setTraining({
                 id: 0,
                 title: '',
                 description: '',
                 steps: [{ type: 'content', title: 'Introdução', content: '' }],
-                agentProgress: {}
+                isVisible: true,
             });
         }
     }, [initialData]);
 
     const handleTrainingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setTraining(prev => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target;
+        
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setTraining(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setTraining(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleStepChange = (stepIndex: number, field: keyof TrainingStep, value: string) => {
@@ -448,7 +472,12 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(training);
+        // Recria o objeto completo para enviar para a função onSave
+        const finalTraining: TrainingMaterial = {
+            ...(initialData || { agentProgress: {} }), // Mantém o agentProgress se estiver editando
+            ...training,
+        };
+        onSave(finalTraining);
         onClose();
     };
 
@@ -461,10 +490,24 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
                 <TextArea name="description" value={training.description} onChange={handleTrainingChange} required />
             </FormField>
             
+            <div className="flex items-center mt-4 p-3 rounded-md bg-slate-50 border border-border-color">
+                <input
+                    id="isVisible"
+                    name="isVisible"
+                    type="checkbox"
+                    checked={training.isVisible}
+                    onChange={handleTrainingChange}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="isVisible" className="ml-3 block text-sm font-medium text-text-primary">
+                    Tornar esta capacitação visível para os agentes
+                </label>
+            </div>
+            
             <h4 className="text-lg font-semibold border-t border-border-color pt-4 mt-6">Etapas da Capacitação</h4>
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 -mr-2">
+            <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-2 -mr-2">
                 {training.steps.map((step, stepIndex) => (
-                    <div key={stepIndex} className="p-4 bg-slate-50 rounded-lg border border-border-color relative">
+                    <div key={stepIndex} className="p-4 bg-slate-100 rounded-lg border border-border-color relative">
                         <div className="flex justify-between items-center mb-2">
                             <p className="font-semibold">Etapa {stepIndex + 1}</p>
                             {training.steps.length > 1 && (

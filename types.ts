@@ -64,6 +64,7 @@ export interface TrainingMaterial {
   steps: TrainingStep[];
   // Tracks progress for each agent individually
   agentProgress: { [agentId: string]: TrainingProgress };
+  isVisible: boolean;
 }
 
 

@@ -19,6 +19,7 @@ export const INITIAL_TRAINING_DATA: TrainingMaterial[] = [
     id: 1,
     title: 'Controle de Vetores: Aedes aegypti',
     description: 'Um guia completo sobre o ciclo de vida e os métodos de controle do mosquito transmissor da dengue, zika e chikungunya.',
+    isVisible: true,
     steps: [
       {
         type: 'content',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrainingMaterial } from '../types';
+import { TrainingMaterial, TrainingStep } from '../types';
 
 interface TrainingPageProps {
   materials: TrainingMaterial[];
@@ -42,7 +42,7 @@ const TrainingRunner: React.FC<{
 
   const handleQuizSubmit = (selectedIndex: number) => {
     if (quizAnswer.isCorrect) return;
-    const correct = selectedIndex === currentStep.question!.correctAnswerIndex;
+    const correct = currentStep.question!.correctAnswerIndex === selectedIndex;
     setQuizAnswer({ selected: selectedIndex, isCorrect: correct });
   };
 
@@ -115,9 +115,12 @@ const TrainingRunner: React.FC<{
 
 // --- Componente da Lista de Módulos ---
 const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material: TrainingMaterial) => void; loggedInAgentId: string; }> = ({ materials, onStart, loggedInAgentId }) => {
-    const agentProgressData = materials.map(m => m.agentProgress[loggedInAgentId] || { progress: 0, completed: false });
+    // Filtra os materiais para mostrar apenas os visíveis para o agente
+    const visibleMaterials = materials.filter(m => m.isVisible);
+
+    const agentProgressData = visibleMaterials.map(m => m.agentProgress[loggedInAgentId] || { progress: 0, completed: false });
     const completedCount = agentProgressData.filter(p => p.completed).length;
-    const totalCount = materials.length;
+    const totalCount = visibleMaterials.length;
     const overallProgress = totalCount > 0 ? (agentProgressData.reduce((sum, p) => sum + p.progress, 0) / totalCount) : 0;
     
     return(
@@ -127,14 +130,15 @@ const TrainingList: React.FC<{ materials: TrainingMaterial[]; onStart: (material
                     <h2 className="text-xl font-bold text-text-primary">Seu Progresso de Capacitação</h2>
                     <span className="text-2xl font-bold text-primary">{overallProgress.toFixed(0)}%</span>
                 </div>
-                <p className="text-text-secondary mb-4">Você concluiu <span className="font-semibold text-text-primary">{completedCount} de {totalCount}</span> módulos. Continue assim!</p>
+                <p className="text-text-secondary mb-4">Você concluiu <span className="font-semibold text-text-primary">{completedCount} de {totalCount}</span> módulos disponíveis. Continue assim!</p>
                 <div className="w-full bg-slate-200 rounded-full h-2.5">
                     <div className="bg-primary h-2.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${overallProgress}%` }}></div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {materials.map((material, index) => {
+                {/* CORREÇÃO APLICADA AQUI: iterando sobre 'visibleMaterials' em vez de 'materials' */}
+                {visibleMaterials.map((material, index) => {
                     const agentProgress = material.agentProgress[loggedInAgentId] || { progress: 0, completed: false };
                     return (
                         <div key={material.id} className="bg-surface rounded-xl shadow-card transition-all duration-300 flex flex-col hover:shadow-card-hover hover:-translate-y-1 animate-stagger-item-in" style={{ animationDelay: `${index * 75}ms` }}>
@@ -164,7 +168,10 @@ const TrainingPage: React.FC<TrainingPageProps> = ({ materials, onUpdateProgress
   const [activeTraining, setActiveTraining] = useState<TrainingMaterial | null>(null);
 
   if (activeTraining) {
-      const initialStep = activeTraining.agentProgress[loggedInAgentId]?.currentStep || 0;
+      const agentProgress = activeTraining.agentProgress[loggedInAgentId];
+      // Se houver progresso e não estiver completo, começa da última etapa. Senão, do início.
+      const initialStep = (agentProgress && !agentProgress.completed) ? agentProgress.currentStep : 0;
+      
       return <TrainingRunner 
                 material={activeTraining} 
                 onExit={() => setActiveTraining(null)} 
