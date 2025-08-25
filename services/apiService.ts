@@ -27,7 +27,6 @@ async function request(action: string, payload: any = {}) {
         const responseData = await response.json();
         
         if (responseData.success === false) {
-            // Se o erro for de token, desloga o usuário para evitar loops de erro
             if (responseData.error && (responseData.error.toLowerCase().includes('expirado') || responseData.error.toLowerCase().includes('inválido'))) {
                 logout();
                 window.location.reload();
@@ -35,7 +34,7 @@ async function request(action: string, payload: any = {}) {
             throw new Error(responseData.error || 'Ocorreu um erro desconhecido na API.');
         }
         
-        return responseData.data; // Retorna apenas o objeto de dados em caso de sucesso
+        return responseData.data;
 
     } catch (error) {
         console.error("Falha na requisição Fetch:", error);
@@ -71,6 +70,7 @@ export const getAssessmentHistory = () => request('getAssessmentHistory');
 export const getAgents = () => request('getAgents');
 
 // --- Funções de Escrita (CREATE, UPDATE, DELETE) ---
+// ESTA SEÇÃO ESTAVA FALTANDO NO CÓDIGO ANTERIOR
 export const saveTraining = (trainingData: any) => request('saveTraining', trainingData);
 export const deleteTraining = (id: number) => request('deleteTraining', { id });
 export const updateTrainingProgress = (trainingId: number, currentStepIndex: number) => request('updateTrainingProgress', { trainingId, currentStepIndex });

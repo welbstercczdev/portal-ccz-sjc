@@ -38,6 +38,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [editingItem, setEditingItem] = useState<any | null>(null);
     const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
     const [resettingAgent, setResettingAgent] = useState<Agent | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [confirmation, setConfirmation] = useState<{
         isOpen: boolean;
@@ -80,14 +81,19 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
         });
     };
 
-    const confirmDelete = (type: View, id: number | string) => {
-        switch(type) {
-            case 'trainings': props.onDeleteTraining(id as number); break;
-            case 'norms': props.onDeleteNorm(id as number); break;
-            case 'assessments': props.onDeleteAssessment(id as string); break;
-            case 'users': props.onDeleteAgent(id as string); break;
+    const confirmDelete = async (type: View, id: number | string) => {
+        setIsDeleting(true);
+        try {
+            switch(type) {
+                case 'trainings': await props.onDeleteTraining(id as number); break;
+                case 'norms': await props.onDeleteNorm(id as number); break;
+                case 'assessments': await props.onDeleteAssessment(id as string); break;
+                case 'users': await props.onDeleteAgent(id as string); break;
+            }
+        } finally {
+            setIsDeleting(false);
+            setConfirmation(null);
         }
-        setConfirmation(null);
     };
 
     const handleToggleVisibility = (quiz: Quiz) => {
@@ -205,6 +211,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                                                     {item.isVisible ? <EyeIcon/> : <EyeOffIcon/>}
                                                 </button>
                                                 <button onClick={() => openModal(item)} className="text-blue-600 hover:text-blue-800"><EditIcon/></button>
+                                                {/* CORREÇÃO APLICADA AQUI */}
                                                 <button onClick={() => handleDelete('assessments', item.id, item.title)} className="text-red-600 hover:text-red-800"><DeleteIcon/></button>
                                             </td>
                                         </tr>
@@ -351,6 +358,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
                 message={confirmation?.message || ''}
                 onConfirm={() => confirmation?.onConfirm()}
                 onCancel={() => setConfirmation(null)}
+                isConfirming={isDeleting}
             />
         </div>
     );
@@ -379,31 +387,23 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 
 
 const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (data: TrainingMaterial) => void, onClose: () => void}> = ({ initialData, onSave, onClose }) => {
-    const [training, setTraining] = useState<Omit<TrainingMaterial, 'agentProgress'>>({
-        id: 0,
-        title: '',
-        description: '',
-        steps: [{ type: 'content', title: '', content: '' }],
-        isVisible: true,
-    });
+    // CORREÇÃO: O tipo do estado precisa ser completo para evitar perda de dados.
+    const [training, setTraining] = useState<Partial<TrainingMaterial>>({});
 
     useEffect(() => {
         if (initialData) {
             setTraining({
-                id: initialData.id,
-                title: initialData.title,
-                description: initialData.description,
-                steps: initialData.steps,
-                isVisible: initialData.isVisible ?? true, // Garante que o valor não seja undefined
+                ...initialData,
+                isVisible: initialData.isVisible ?? true,
             });
         } else {
-            // Valor padrão para novas capacitações
             setTraining({
                 id: 0,
                 title: '',
                 description: '',
                 steps: [{ type: 'content', title: 'Introdução', content: '' }],
                 isVisible: true,
+                agentProgress: {},
             });
         }
     }, [initialData]);
@@ -420,7 +420,7 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
     };
 
     const handleStepChange = (stepIndex: number, field: keyof TrainingStep, value: string) => {
-        const newSteps = [...training.steps];
+        const newSteps = [...(training.steps || [])];
         const step = newSteps[stepIndex] as any;
         step[field] = value;
         
@@ -431,7 +431,7 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
     };
 
     const handleQuestionChange = (stepIndex: number, field: 'text' | `option-${number}`, value: string) => {
-        const newSteps = [...training.steps];
+        const newSteps = [...(training.steps || [])];
         const question = newSteps[stepIndex].question;
         if (!question) return;
 
@@ -445,7 +445,7 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
     };
 
     const handleCorrectAnswerChange = (stepIndex: number, correctIndex: number) => {
-        const newSteps = [...training.steps];
+        const newSteps = [...(training.steps || [])];
         const question = newSteps[stepIndex].question;
         if (!question) return;
         question.correctAnswerIndex = correctIndex;
@@ -455,39 +455,34 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
     const addStep = () => {
         setTraining(prev => ({
             ...prev,
-            steps: [...prev.steps, { type: 'content', title: '', content: '' }]
+            steps: [...(prev.steps || []), { type: 'content', title: '', content: '' }]
         }));
     };
 
     const removeStep = (stepIndex: number) => {
-        if (training.steps.length <= 1) {
+        if ((training.steps || []).length <= 1) {
             alert("A capacitação deve ter pelo menos uma etapa.");
             return;
         }
         setTraining(prev => ({
             ...prev,
-            steps: prev.steps.filter((_, index) => index !== stepIndex)
+            steps: (prev.steps || []).filter((_, index) => index !== stepIndex)
         }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Recria o objeto completo para enviar para a função onSave
-        const finalTraining: TrainingMaterial = {
-            ...(initialData || { agentProgress: {} }), // Mantém o agentProgress se estiver editando
-            ...training,
-        };
-        onSave(finalTraining);
+        onSave(training as TrainingMaterial);
         onClose();
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <FormField label="Título da Capacitação">
-                <TextInput name="title" value={training.title} onChange={handleTrainingChange} required />
+                <TextInput name="title" value={training.title || ''} onChange={handleTrainingChange} required />
             </FormField>
             <FormField label="Descrição da Capacitação">
-                <TextArea name="description" value={training.description} onChange={handleTrainingChange} required />
+                <TextArea name="description" value={training.description || ''} onChange={handleTrainingChange} required />
             </FormField>
             
             <div className="flex items-center mt-4 p-3 rounded-md bg-slate-50 border border-border-color">
@@ -495,7 +490,7 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
                     id="isVisible"
                     name="isVisible"
                     type="checkbox"
-                    checked={training.isVisible}
+                    checked={training.isVisible ?? true}
                     onChange={handleTrainingChange}
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
@@ -506,11 +501,11 @@ const TrainingForm: React.FC<{initialData: TrainingMaterial | null, onSave: (dat
             
             <h4 className="text-lg font-semibold border-t border-border-color pt-4 mt-6">Etapas da Capacitação</h4>
             <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-2 -mr-2">
-                {training.steps.map((step, stepIndex) => (
+                {(training.steps || []).map((step, stepIndex) => (
                     <div key={stepIndex} className="p-4 bg-slate-100 rounded-lg border border-border-color relative">
                         <div className="flex justify-between items-center mb-2">
                             <p className="font-semibold">Etapa {stepIndex + 1}</p>
-                            {training.steps.length > 1 && (
+                            {(training.steps || []).length > 1 && (
                                 <button type="button" onClick={() => removeStep(stepIndex)} className="text-red-500 hover:text-red-700"><DeleteIcon/></button>
                             )}
                         </div>

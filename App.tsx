@@ -12,6 +12,7 @@ import HistoryPage from './pages/HistoryPage';
 import RankingPage from './pages/RankingPage';
 import GamesPage from './pages/GamesPage';
 import LoginPage from './pages/LoginPage';
+import LoadingScreen from './components/LoadingScreen'; 
 
 // CORREÇÃO APLICADA AQUI: Importa TODAS as funções necessárias do apiService
 import {
@@ -216,7 +217,7 @@ const handleDeleteAgent = async (id: string) => {
   }
 
   if (isLoading) {
-    return <div className="w-screen h-screen flex items-center justify-center bg-background text-text-primary">Carregando Portal...</div>;
+    return <LoadingScreen />; 
   }
 
   if (!loggedInUser) {

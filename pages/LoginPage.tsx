@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Agent } from '../types';
 import { login } from '../services/apiService';
+import Spinner from '../components/Spinner';
 
 interface LoginPageProps {
   onLoginSuccess: (user: Agent) => void;
@@ -66,11 +67,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-slate-400"
+              className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-slate-400 flex items-center justify-center gap-2" // <-- 2. Adicione flexbox
             >
+              {/* 3. Lógica para mostrar o spinner ou o texto */}
+              {isLoading && <Spinner size="sm" color="border-white" />}
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
           </div>
+// ...
         </form>
       </div>
     </div>
