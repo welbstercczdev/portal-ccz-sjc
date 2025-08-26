@@ -741,13 +741,21 @@ const AgentForm: React.FC<{initialData: Agent | null, onSave: (data: Agent) => v
             alert("Nome e email são obrigatórios.");
             return;
         }
-        if (!initialData && !data.password) {
-            alert("A senha é obrigatória para novos usuários.");
+        
+        // Validação de senha forte para novos usuários
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{8,}$/;
+        if (!initialData && (!data.password || !data.password.match(passwordRegex))) {
+            alert("A senha é obrigatória e deve ter no mínimo 8 caracteres, com uma letra maiúscula, uma minúscula e um número.");
+            return;
+        }
+        // Validação para senha nova (opcional) ao editar
+        if (initialData && data.password && !data.password.match(passwordRegex)) {
+            alert("A nova senha deve ter no mínimo 8 caracteres, com uma letra maiúscula, uma minúscula e um número.");
             return;
         }
 
         const saveData: Agent = {
-            id: initialData?.id ?? '', // App.tsx will generate ID if empty
+            id: initialData?.id ?? '',
             name: data.name,
             email: data.email,
             role: data.role || 'agente',
@@ -788,17 +796,21 @@ const ResetPasswordForm: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newPassword.length < 6) {
-            alert("A nova senha deve ter pelo menos 6 caracteres.");
+        
+        // Validação de senha forte
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{8,}$/;
+        if (!newPassword.match(passwordRegex)) {
+            alert("A nova senha deve ter no mínimo 8 caracteres, com uma letra maiúscula, uma minúscula e um número.");
             return;
         }
+
         onSave(agent, newPassword);
     };
 
     return (
         <form onSubmit={handleSubmit}>
             <p className="mb-4 text-text-secondary">
-                Você está resetando a senha para o usuário <span className="font-bold text-text-primary">{agent.name}</span> (<span className="italic">{agent.email}</span>).
+                Você está definindo uma nova senha para o usuário <span className="font-bold text-text-primary">{agent.name}</span>.
             </p>
             <FormField label="Nova Senha">
                 <TextInput 
@@ -807,7 +819,6 @@ const ResetPasswordForm: React.FC<{
                     value={newPassword} 
                     onChange={(e) => setNewPassword(e.target.value)} 
                     required 
-                    minLength={6}
                     placeholder="Digite a nova senha"
                     autoFocus
                 />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Adicionado useEffect
+import React, { useState, useEffect } from 'react';
 import Spinner from './Spinner';
 
 interface ChangePasswordModalProps {
@@ -14,7 +14,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Adicionado para limpar o formulário quando o modal é fechado/reaberto
   useEffect(() => {
     if (!isOpen) {
       setCurrentPassword('');
@@ -25,7 +24,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
     }
   }, [isOpen]);
   
-  // Adicionado para permitir fechar com a tecla 'Esc'
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !isLoading) {
@@ -47,10 +45,14 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (newPassword.length < 6) {
-      setError("A nova senha deve ter pelo menos 6 caracteres.");
+    // --- ATUALIZAÇÃO: Validação de senha mais forte ---
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{8,}$/;
+    if (!newPassword.match(passwordRegex)) {
+      setError("A nova senha deve ter no mínimo 8 caracteres, com uma letra maiúscula, uma minúscula e um número.");
       return;
     }
+    // --- FIM DA ATUALIZAÇÃO ---
+
     if (newPassword !== confirmPassword) {
       setError("As novas senhas não coincidem.");
       return;
@@ -69,7 +71,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
     }
   };
   
-  // Função para garantir que o modal não feche durante o carregamento
   const handleBackdropClick = () => {
     if (!isLoading) {
       onClose();
@@ -77,7 +78,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
   };
 
   return (
-    // CORREÇÃO: onClick agora usa handleBackdropClick para impedir fechamento acidental
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in p-4" onClick={handleBackdropClick}>
       <div className="bg-surface rounded-xl shadow-2xl p-6 w-full max-w-md m-4 animate-modal-pop-in" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-xl font-bold text-text-primary mb-4">Alterar Senha</h2>
