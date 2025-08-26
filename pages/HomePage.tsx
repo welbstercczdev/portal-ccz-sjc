@@ -35,7 +35,7 @@ const HomePage: React.FC<HomePageProps> = ({ setActivePage }) => {
     <div>
         <div className="mb-8">
             <h1 className="text-3xl font-bold text-text-primary mb-1">Painel do Agente</h1>
-            <p className="text-lg text-text-secondary">Visão geral das suas atividades e progresso.</p>
+            <p className="text-lg text-text-secondary">Visão geral das suas atividades.</p>
         </div>
       
         <div>
