@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 
 // --- Assets and Components ---
@@ -13,7 +14,6 @@ const SvgTireHotspot: React.FC = () => (
 const SvgTireEvolvedHotspot: React.FC = () => (
     <img src="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/pneuevoluido.png?raw=true" alt="Pneu com infestação grave de mosquitos" className="w-full h-full object-contain" />
 );
-
 
 const SvgPlantSaucerHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100">
@@ -39,7 +39,6 @@ const SvgPlantSaucerEvolvedHotspot: React.FC = () => (
     </svg>
 );
 
-
 const SvgWaterTankHotspot: React.FC = () => (
     <svg viewBox="0 0 100 100">
         <image href="https://github.com/welbstercczdev/portal-ccz-sjc/blob/main/imagens/batalha-contra-a-dengue/caixadagua.png?raw=true" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid meet" />
@@ -58,20 +57,18 @@ const SvgPetBottleHotspot: React.FC = () => (
     </svg>
 );
 
-
 const TypeWriter: React.FC<{ text: string }> = ({ text }) => {
     const [displayedText, setDisplayedText] = useState('');
     useEffect(() => {
-        setDisplayedText(''); // Reset on new text
+        setDisplayedText('');
         let i = 0;
         const intervalId = setInterval(() => {
-            i += 1;
-            setDisplayedText(text.substring(0, i));
-
+            setDisplayedText(prev => text.substring(0, prev.length + 1));
             if (i >= text.length) {
                 clearInterval(intervalId);
             }
-        }, 30);
+            i++;
+        }, 25); // Diminuí um pouco a velocidade da digitação para melhor leitura
         return () => clearInterval(intervalId);
     }, [text]);
 
@@ -400,7 +397,8 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             setMessage(attack.message);
         }
         
-        await sleep(1500);
+        // CORREÇÃO: Aumentado o tempo de espera para ler a mensagem do ataque/proliferação
+        await sleep(2500); 
         setAnimations(prev => ({ ...prev, floatingText: null }));
     
         if (newProliferation >= MAX_PROLIFERATION) {
@@ -438,7 +436,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         await proceedWithProliferation(enemyForTurn, actionEffect);
     };
 
-    const handlePlayerAction = async (action: Action) => {
+     const handlePlayerAction = async (action: Action) => {
         if (!isPlayerTurn) return;
         setIsPlayerTurn(false);
     
@@ -456,7 +454,7 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             enemy: 'animate-shake',
             floatingText: { text: `${action.damage > 0 ? `-${action.damage} HP` : 'Sem dano'}`, color: 'text-red-500', target: 'enemy', key: Date.now() }
         }));
-        await sleep(400);
+        await sleep(800); // Aumentado um pouco para ver o dano
     
         setAnimations({ player: '', enemy: 'animate-shake', special: '', floatingText: null });
         setMessage(action.message);
@@ -468,10 +466,12 @@ const DengueBattleGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             await sleep(1500);
             setGameState('won');
         } else {
-            await sleep(1000);
+            // CORREÇÃO: Aumentado o tempo de espera para ler o resultado da ação do jogador
+            await sleep(2000); 
             enemyTurn(action.proliferationEffect);
         }
     };
+
 
     const handleSpecialAction = async () => {
         if (!isPlayerTurn || specialCharge < MAX_SPECIAL_CHARGE) return;
