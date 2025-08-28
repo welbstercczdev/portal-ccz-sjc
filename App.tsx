@@ -244,7 +244,12 @@ const App: React.FC = () => {
       case Page.Training:
         return <TrainingPage materials={trainingData} onUpdateProgress={handleUpdateTrainingProgress} loggedInAgentId={loggedInUser.id} />;
       case Page.Assessments:
-        return <AssessmentPage assessments={assessmentsData} onAddResult={handleAddAssessmentResult} />;
+        return <AssessmentPage 
+                  assessments={assessmentsData} 
+                  history={assessmentHistory} // <-- ADICIONADO
+                  loggedInAgentId={loggedInUser.id} // <-- ADICIONADO
+                  onAddResult={handleAddAssessmentResult} 
+               />;
       case Page.Norms:
         return <NormsPage norms={normsData} />;
       case Page.History:

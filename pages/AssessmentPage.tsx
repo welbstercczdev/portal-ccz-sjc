@@ -3,6 +3,8 @@ import { Quiz, Question, AssessmentResult } from '../types';
 
 interface AssessmentPageProps {
   assessments: Quiz[];
+  history: AssessmentResult[]; // <-- ADICIONADO
+  loggedInAgentId: string; // <-- ADICIONADO
   onAddResult: (result: Omit<AssessmentResult, 'id' | 'date' | 'agentId' | 'agentName'>) => void;
 }
 
@@ -112,15 +114,7 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
     }
   };
 
-  const restartQuiz = () => {
-      setCurrentQuestionIndex(0);
-      setUserAnswers(Array(quiz.questions.length).fill(null));
-      setSelectedOption(null);
-      setShowResult(false);
-      setHasBeenSaved(false);
-      setDisplayScore(0);
-      setStartTime(Date.now());
-  }
+  // REMOVIDO: A função restartQuiz foi removida para impedir que a avaliação seja refeita.
 
   if (showResult) {
     const percentage = quiz.questions.length > 0 ? (score / quiz.questions.length) * 100 : 0;
@@ -168,13 +162,10 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-                <button onClick={restartQuiz} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors">
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>
-                    Tentar Novamente
-                </button>
+            <div className="flex justify-center items-center gap-4 mt-8">
+                {/* REMOVIDO: Botão "Tentar Novamente" foi removido. */}
                 <button onClick={onBack} className="w-full sm:w-auto bg-slate-200 text-text-secondary font-bold py-3 px-6 rounded-lg hover:bg-slate-300 transition-colors">
-                    Voltar
+                    Voltar para Avaliações
                 </button>
             </div>
         </div>
@@ -245,8 +236,11 @@ const QuizRunner: React.FC<{ quiz: Quiz; onBack: () => void, onAddResult: (resul
 };
 
 
-const AssessmentPage: React.FC<AssessmentPageProps> = ({ assessments, onAddResult }) => {
+const AssessmentPage: React.FC<AssessmentPageProps> = ({ assessments, history, loggedInAgentId, onAddResult }) => {
     const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
+    
+    // CORREÇÃO: Verifica quais avaliações o usuário já completou.
+    const completedQuizIds = new Set(history.filter(h => h.agentId === loggedInAgentId).map(h => h.quizId));
     
     const visibleAssessments = assessments.filter(quiz => quiz.isVisible);
 
@@ -268,15 +262,23 @@ const AssessmentPage: React.FC<AssessmentPageProps> = ({ assessments, onAddResul
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleAssessments.map((quiz, index) => (
-                <div key={quiz.id} className="bg-surface p-6 rounded-xl shadow-card flex flex-col hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 animate-stagger-item-in" style={{ animationDelay: `${index * 75}ms`}}>
-                    <h3 className="text-xl font-bold text-primary">{quiz.title}</h3>
-                    <p className="text-text-secondary my-2 flex-grow">{quiz.description}</p>
-                    <button onClick={() => setActiveQuiz(quiz)} className="mt-4 bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors">
-                        Iniciar Avaliação
-                    </button>
-                </div>
-            ))}
+            {visibleAssessments.map((quiz, index) => {
+                // CORREÇÃO: Verifica se o quiz atual já foi completado pelo usuário.
+                const isCompleted = completedQuizIds.has(quiz.id);
+                return (
+                    <div key={quiz.id} className={`p-6 rounded-xl shadow-card flex flex-col transition-all duration-300 animate-stagger-item-in ${isCompleted ? 'bg-slate-100' : 'bg-surface hover:shadow-card-hover hover:-translate-y-1'}`} style={{ animationDelay: `${index * 75}ms`}}>
+                        <h3 className={`text-xl font-bold ${isCompleted ? 'text-slate-500' : 'text-primary'}`}>{quiz.title}</h3>
+                        <p className={`my-2 flex-grow ${isCompleted ? 'text-slate-400' : 'text-text-secondary'}`}>{quiz.description}</p>
+                        <button 
+                          onClick={() => setActiveQuiz(quiz)} 
+                          disabled={isCompleted} // Desabilita o botão se já foi completado
+                          className="mt-4 w-full bg-primary text-white font-bold py-2 px-4 rounded-lg transition-colors hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed"
+                        >
+                            {isCompleted ? 'Avaliação Concluída' : 'Iniciar Avaliação'}
+                        </button>
+                    </div>
+                )
+            })}
         </div>
     );
 };
